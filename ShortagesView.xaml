@@ -124,6 +124,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
@@ -135,7 +136,11 @@
                         <TextBlock Text="{Binding CurrencyBadge}" Foreground="#10B981" FontSize="11" FontWeight="SemiBold"/>
                     </Border>
 
-                    <Button Grid.Column="2" Content="حذف" Background="#EF4444" Foreground="White" Width="60" Height="30"
+                    <Button Grid.Column="2" Content="تم الشراء" Background="#10B981" Foreground="White" Width="80" Height="30" Margin="0,0,8,0"
+                            CommandParameter="{Binding}" Click="BtnPurchased_Click"
+                            Style="{StaticResource RoundedButtonStyle}"/>
+
+                    <Button Grid.Column="3" Content="حذف" Background="#EF4444" Foreground="White" Width="60" Height="30"
                             CommandParameter="{Binding}" Click="BtnDelete_Click"
                             Style="{StaticResource RoundedButtonStyle}"/>
                 </Grid>
@@ -201,8 +206,12 @@
 
                     <Border Grid.Row="3" Background="#1A10B981" CornerRadius="8" Padding="14,10" Margin="0,12,0,0">
                         <Grid>
-                            <TextBlock Text="المجموع" Foreground="#10B981" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="TxtUrgentTotal" Text="0 ل.س" Foreground="{DynamicResource AppTextPrimary}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="المجموع" Foreground="#10B981" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" x:Name="TxtUrgentTotal" Text="0 ل.س" Foreground="{DynamicResource AppTextPrimary}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="12,0,0,0"/>
                         </Grid>
                     </Border>
                 </Grid>
@@ -251,8 +260,12 @@
 
                     <Border Grid.Row="3" Background="#1AF59E0B" CornerRadius="8" Padding="14,10" Margin="0,12,0,0">
                         <Grid>
-                            <TextBlock Text="المجموع" Foreground="#F59E0B" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="TxtNonUrgentTotal" Text="0 ل.س" Foreground="{DynamicResource AppTextPrimary}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="المجموع" Foreground="#F59E0B" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" x:Name="TxtNonUrgentTotal" Text="0 ل.س" Foreground="{DynamicResource AppTextPrimary}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="12,0,0,0"/>
                         </Grid>
                     </Border>
                 </Grid>

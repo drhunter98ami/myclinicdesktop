@@ -171,6 +171,46 @@ namespace MyClinic
             }
         }
 
+        private async void BtnPurchased_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.CommandParameter is ShortageRowModel item)
+            {
+                decimal amountInSyp = ConvertToSyp(item.Price, item.Currency);
+
+                try
+                {
+                    using var context = new AppDbContext();
+
+                    var newExpense = new ExpenseEntry
+                    {
+                        ExpenseDate = DateTime.Now,
+                        Description = item.Item,
+                        Amount = (double)amountInSyp
+                    };
+                    context.Expenses.Add(newExpense);
+
+                    var shortage = context.Shortages.FirstOrDefault(s => s.Id == item.Id);
+                    if (shortage != null)
+                    {
+                        context.Shortages.Remove(shortage);
+                    }
+
+                    await context.SaveChangesAsync();
+
+                    if (UrgentItems.Contains(item))
+                        UrgentItems.Remove(item);
+                    else if (NonUrgentItems.Contains(item))
+                        NonUrgentItems.Remove(item);
+
+                    GlobalEvents.NotifyFinancialRecordAdded();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"خطأ أثناء تسجيل الشراء: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
         private void LoadData()
         {
             try
