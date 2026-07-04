@@ -294,7 +294,23 @@ namespace MyClinic
                         labWork.Status = "تم الدفع";
                         labWork.DatePaid = DateTime.Now;
                         labWork.AmountPaid = labWork.Cost;
+                        
+                        // --- new code ---
+                        // add new expense
+                        decimal costInSyp = labWork.Cost * _usdToSypRate;
+                        var newExpense = new ExpenseEntry
+                        {
+                            ExpenseDate = DateTime.Now,
+                            Description = $"تكلفة عمل مخبر لـ {labWork.PatientName}",
+                            Amount = (double)costInSyp
+                        };
+                        context.Expenses.Add(newExpense);
+                        
                         context.SaveChanges();
+
+                        // Notify financial tab
+                        GlobalEvents.NotifyFinancialRecordAdded();
+                        
                         LoadLabWorks();
                         UpdateSummary();
                     }
