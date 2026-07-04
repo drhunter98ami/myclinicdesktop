@@ -6,6 +6,8 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace MyClinic
@@ -14,6 +16,7 @@ namespace MyClinic
     {
         private List<LabWork> _allLabWorks = new List<LabWork>();
         private decimal _usdToSypRate = 15000;
+        private string _currentDateFilter = "all"; // all, day, month, year
 
         public LabView()
         {
@@ -22,6 +25,13 @@ namespace MyClinic
             LoadLabNames();
             LoadLabWorks();
             UpdateSummary();
+            
+            // Set default filter to monthly
+            _currentDateFilter = "month";
+            DpFilterDate.SelectedDate = DateTime.Now;
+            BtnCurrentDate.Visibility = Visibility.Visible;
+            UpdateButtonStyles();
+            ApplyFilters();
         }
 
         private void LoadLabNames()
@@ -146,28 +156,55 @@ namespace MyClinic
 
         private void BtnAddLabName_Click(object sender, RoutedEventArgs e)
         {
-            string newLabName = Microsoft.VisualBasic.Interaction.InputBox("أدخل اسم المخبر الجديد:", "إضافة مخبر جديد", "");
-            if (!string.IsNullOrWhiteSpace(newLabName))
+            TxtNewLabName.Clear();
+            AddLabNameDialogOverlay.Visibility = Visibility.Visible;
+            TxtNewLabName.Focus();
+        }
+
+        private void AddLabNameDialogBackdrop_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            AddLabNameDialogOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnCloseAddLabNameDialog_Click(object sender, RoutedEventArgs e)
+        {
+            AddLabNameDialogOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnCancelAddLabName_Click(object sender, RoutedEventArgs e)
+        {
+            AddLabNameDialogOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnConfirmAddLabName_Click(object sender, RoutedEventArgs e)
+        {
+            string newLabName = TxtNewLabName.Text?.Trim();
+            if (string.IsNullOrWhiteSpace(newLabName))
             {
-                try
+                MessageBox.Show("يرجى إدخال اسم المخبر", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                using var context = new AppDbContext();
+                // Check if name already exists
+                if (context.LabNames.Any(l => l.Name == newLabName))
                 {
-                    using var context = new AppDbContext();
-                    // Check if name already exists
-                    if (context.LabNames.Any(l => l.Name == newLabName.Trim()))
-                    {
-                        MessageBox.Show("هذا الاسم موجود بالفعل", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
-                    var labName = new LabName { Name = newLabName.Trim() };
-                    context.LabNames.Add(labName);
-                    context.SaveChanges();
-                    LoadLabNames();
-                    CmbLabName.SelectedItem = labName;
+                    MessageBox.Show("هذا الاسم موجود بالفعل", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"خطأ في إضافة المخبر: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                var labName = new LabName { Name = newLabName };
+                context.LabNames.Add(labName);
+                context.SaveChanges();
+                LoadLabNames();
+                CmbLabName.SelectedItem = labName;
+                AddLabNameDialogOverlay.Visibility = Visibility.Collapsed;
+                MessageBox.Show("تم إضافة المخبر بنجاح", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"خطأ في إضافة المخبر: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -305,7 +342,154 @@ namespace MyClinic
                 filtered = filtered.Where(l => l.Status == statusFilter);
             }
 
+            // Apply date filter
+            if (_currentDateFilter != "all" && DpFilterDate.SelectedDate.HasValue)
+            {
+                DateTime selectedDate = DpFilterDate.SelectedDate.Value;
+                switch (_currentDateFilter)
+                {
+                    case "day":
+                        filtered = filtered.Where(l => l.DateSent.Date == selectedDate.Date);
+                        break;
+                    case "month":
+                        filtered = filtered.Where(l => l.DateSent.Year == selectedDate.Year && l.DateSent.Month == selectedDate.Month);
+                        break;
+                    case "year":
+                        filtered = filtered.Where(l => l.DateSent.Year == selectedDate.Year);
+                        break;
+                }
+            }
+
             DgLabWorks.ItemsSource = filtered.ToList();
+        }
+
+        private void BtnDayRange_Click(object sender, RoutedEventArgs e)
+        {
+            _currentDateFilter = "day";
+            DpFilterDate.SelectedDate = DateTime.Now;
+            BtnCurrentDate.Visibility = Visibility.Visible;
+            UpdateButtonStyles();
+            ApplyFilters();
+        }
+
+        private void BtnMonthRange_Click(object sender, RoutedEventArgs e)
+        {
+            _currentDateFilter = "month";
+            DpFilterDate.SelectedDate = DateTime.Now;
+            BtnCurrentDate.Visibility = Visibility.Visible;
+            UpdateButtonStyles();
+            ApplyFilters();
+            
+            // Open calendar and set to month view
+            DpFilterDate.IsDropDownOpen = true;
+        }
+
+        private void BtnYearRange_Click(object sender, RoutedEventArgs e)
+        {
+            _currentDateFilter = "year";
+            DpFilterDate.SelectedDate = DateTime.Now;
+            BtnCurrentDate.Visibility = Visibility.Visible;
+            UpdateButtonStyles();
+            ApplyFilters();
+            
+            // Open calendar and set to year view
+            DpFilterDate.IsDropDownOpen = true;
+        }
+
+        private void BtnCurrentDate_Click(object sender, RoutedEventArgs e)
+        {
+            DpFilterDate.SelectedDate = DateTime.Now;
+            ApplyFilters();
+        }
+
+        private void DpFilterDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DpFilterDate.SelectedDate.HasValue)
+            {
+                ApplyFilters();
+            }
+        }
+
+        private void DpFilterDate_CalendarOpened(object sender, RoutedEventArgs e)
+        {
+            // Set calendar display mode based on current filter
+            var datePicker = (DatePicker)sender;
+            if (datePicker != null)
+            {
+                var popup = datePicker.Template.FindName("PART_Popup", datePicker) as System.Windows.Controls.Primitives.Popup;
+                if (popup != null && popup.Child is System.Windows.Controls.Calendar calendar)
+                {
+                    calendar.DisplayModeChanged -= Calendar_DisplayModeChanged;
+                    calendar.DisplayModeChanged += Calendar_DisplayModeChanged;
+
+                    if (_currentDateFilter == "month")
+                    {
+                        calendar.DisplayMode = CalendarMode.Year;
+                    }
+                    else if (_currentDateFilter == "year")
+                    {
+                        calendar.DisplayMode = CalendarMode.Decade;
+                    }
+                    else
+                    {
+                        calendar.DisplayMode = CalendarMode.Month;
+                    }
+                }
+            }
+        }
+
+        private void Calendar_DisplayModeChanged(object sender, CalendarModeChangedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Calendar calendar)
+            {
+                if (_currentDateFilter == "month" && calendar.DisplayMode == CalendarMode.Month)
+                {
+                    DpFilterDate.SelectedDate = calendar.DisplayDate;
+                    DpFilterDate.IsDropDownOpen = false;
+                }
+                else if (_currentDateFilter == "year" && calendar.DisplayMode == CalendarMode.Year)
+                {
+                    DpFilterDate.SelectedDate = calendar.DisplayDate;
+                    DpFilterDate.IsDropDownOpen = false;
+                }
+            }
+        }
+
+        private void UpdateButtonStyles()
+        {
+            // Reset all buttons to default style
+            BtnDayRange.Style = (Style)FindResource("RangeButtonStyle");
+            BtnMonthRange.Style = (Style)FindResource("RangeButtonStyle");
+            BtnYearRange.Style = (Style)FindResource("RangeButtonStyle");
+
+            // Apply selected style to current filter button
+            switch (_currentDateFilter)
+            {
+                case "day":
+                    BtnDayRange.Style = (Style)FindResource("RangeButtonSelectedStyle");
+                    break;
+                case "month":
+                    BtnMonthRange.Style = (Style)FindResource("RangeButtonSelectedStyle");
+                    break;
+                case "year":
+                    BtnYearRange.Style = (Style)FindResource("RangeButtonSelectedStyle");
+                    break;
+            }
+        }
+
+        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T result)
+                    return result;
+
+                var childResult = FindVisualChild<T>(child);
+                if (childResult != null)
+                    return childResult;
+            }
+            return null;
         }
     }
 }

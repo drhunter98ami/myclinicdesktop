@@ -13,6 +13,12 @@ namespace MyClinic.Models
         [Required]
         public bool IsUrgent { get; set; }
 
+        public decimal Price { get; set; }
+
+        /// <summary>"USD" or "SYP"</summary>
+        [Required]
+        public string Currency { get; set; } = "SYP";
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

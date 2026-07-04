@@ -114,6 +114,19 @@ public partial class App : Application
         EnsureColumnExists(context, "Visits", "TodayPaid", "REAL NOT NULL DEFAULT 0");
         EnsureColumnExists(context, "Visits", "RemainingAmount", "REAL NOT NULL DEFAULT 0");
 
+        context.Database.ExecuteSqlRaw(
+            @"CREATE TABLE IF NOT EXISTS Shortages (
+                Id INTEGER NOT NULL CONSTRAINT PK_Shortages PRIMARY KEY AUTOINCREMENT,
+                Item TEXT NOT NULL,
+                IsUrgent INTEGER NOT NULL DEFAULT 0,
+                Price REAL NOT NULL DEFAULT 0,
+                Currency TEXT NOT NULL DEFAULT 'SYP',
+                CreatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+            );");
+
+        EnsureColumnExists(context, "Shortages", "Price", "REAL NOT NULL DEFAULT 0");
+        EnsureColumnExists(context, "Shortages", "Currency", "TEXT NOT NULL DEFAULT 'SYP'");
+
         bool hasUsers = context.Users.Any();
         Window startupWindow = hasUsers && LoginSessionStore.HasValidLoginSession(LoginGracePeriod)
             ? new MainWindow()

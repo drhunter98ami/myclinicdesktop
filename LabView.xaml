@@ -284,10 +284,110 @@
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
+
+        <!-- Calendar Styles for DatePicker -->
+        <Style TargetType="Calendar">
+            <Setter Property="Background" Value="{DynamicResource AppCardBg}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style TargetType="DatePickerTextBox">
+            <Setter Property="Foreground" Value="{DynamicResource AppTextPrimary}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style TargetType="CalendarDayButton">
+            <Setter Property="Background" Value="{DynamicResource AppCardBg}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextPrimary}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CalendarDayButton">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Margin="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource AppBorder}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#2563EB"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="CalendarButton">
+            <Setter Property="Background" Value="{DynamicResource AppCardBg}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextPrimary}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource AppBorder}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="RangeButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextSecondary}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource AppBorder}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RangeButtonSelectedStyle" TargetType="Button">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="0,0,20,20">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,0,20,20">
             <!-- Header -->
             <TextBlock Text="المخبر" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource AppTextPrimary}" Margin="0,0,0,25"/>
 
@@ -414,6 +514,45 @@
                 </StackPanel>
             </Border>
 
+            <!-- Date Filter Section -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,25">
+                <StackPanel>
+                    <TextBlock Text="تصفية حسب التاريخ" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AppTextPrimary}" Margin="0,0,0,15"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border BorderBrush="{DynamicResource AppBorder}" BorderThickness="1" CornerRadius="12" Background="{DynamicResource AppCardBg}" Padding="6" Margin="0,0,12,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button x:Name="BtnDayRange" Content="يومي" Style="{StaticResource RangeButtonStyle}" Width="70" Click="BtnDayRange_Click"/>
+                                    <Button x:Name="BtnMonthRange" Content="شهري" Style="{StaticResource RangeButtonStyle}" Width="70" Click="BtnMonthRange_Click"/>
+                                    <Button x:Name="BtnYearRange" Content="سنوي" Style="{StaticResource RangeButtonStyle}" Width="70" Click="BtnYearRange_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Button x:Name="BtnCurrentDate" Content="التاريخ الحالي" Height="40" Padding="16,0" Background="#1A2563EB" Foreground="#2563EB" FontWeight="SemiBold" Cursor="Hand" Visibility="Collapsed" Click="BtnCurrentDate_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="12">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+
+                        <Border Grid.Column="1" BorderBrush="{DynamicResource AppBorder}" BorderThickness="1" CornerRadius="12" Background="{DynamicResource AppCardBg}" Padding="6" Margin="0,0,12,0">
+                            <DatePicker x:Name="DpFilterDate" Width="140" Height="32" Foreground="{DynamicResource AppTextPrimary}" BorderThickness="0" Background="Transparent" SelectedDateChanged="DpFilterDate_SelectedDateChanged" CalendarOpened="DpFilterDate_CalendarOpened"/>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
             <!-- Works List -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel>
@@ -518,4 +657,74 @@
             </Border>
         </StackPanel>
     </ScrollViewer>
+
+    <!-- Add Lab Name Dialog Overlay -->
+    <Grid x:Name="AddLabNameDialogOverlay" Panel.ZIndex="20" Visibility="Collapsed">
+        <Border Background="#A00F172A" MouseLeftButtonDown="AddLabNameDialogBackdrop_MouseLeftButtonDown"/>
+
+        <Border Width="400" Padding="32" Background="{DynamicResource AppCardBg}" CornerRadius="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border.Effect>
+                <DropShadowEffect Color="#0F172A" BlurRadius="40" ShadowDepth="10" Opacity="0.15"/>
+            </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Dialog Header -->
+                <Grid Grid.Row="0" Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Width="36" Height="36" Background="{DynamicResource AppInputBg}" BorderThickness="0" Click="BtnCloseAddLabNameDialog_Click" Cursor="Hand">
+                        <TextBlock Text="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{DynamicResource AppTextSecondary}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="18">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <TextBlock Grid.Column="1" Text="إضافة مخبر جديد" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource AppTextPrimary}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,36,0"/>
+                </Grid>
+
+                <!-- Dialog Content -->
+                <StackPanel Grid.Row="1">
+                    <TextBlock Text="اسم المخبر" Style="{StaticResource FormLabel}"/>
+                    <TextBox x:Name="TxtNewLabName" Margin="0,0,0,15"/>
+                </StackPanel>
+
+                <!-- Dialog Actions -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                    <Button x:Name="BtnCancelAddLabName" Content="إلغاء" Width="100" Height="40" Background="{DynamicResource AppInputBg}" Foreground="{DynamicResource AppTextSecondary}" BorderThickness="0" FontWeight="SemiBold" Cursor="Hand" Margin="0,0,10,0" Click="BtnCancelAddLabName_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="12">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button x:Name="BtnConfirmAddLabName" Content="إضافة" Width="100" Height="40" Background="#2563EB" Foreground="White" BorderThickness="0" FontWeight="SemiBold" Cursor="Hand" Click="BtnConfirmAddLabName_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="12">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+    </Grid>
 </UserControl>
