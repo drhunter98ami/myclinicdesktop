@@ -241,6 +241,9 @@
                 <DataTrigger Binding="{Binding Status}" Value="تم الإستلام">
                     <Setter Property="Visibility" Value="Collapsed"/>
                 </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="تم الدفع">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -248,6 +251,9 @@
             <Setter Property="Background" Value="#10B981"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Status}" Value="تم الدفع">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="تم الدفع ولم يتم الاستلام">
                     <Setter Property="Visibility" Value="Collapsed"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -491,6 +497,7 @@
                             <ComboBoxItem Content="تم الإرسال"/>
                             <ComboBoxItem Content="تم الإستلام"/>
                             <ComboBoxItem Content="تم الدفع"/>
+                            <ComboBoxItem Content="تم الدفع ولم يتم الاستلام"/>
                         </ComboBox>
                     </Grid>
                 </StackPanel>
@@ -606,6 +613,9 @@
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="تم الدفع">
                                                             <Setter Property="Background" Value="#10B981"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="تم الدفع ولم يتم الاستلام">
+                                                            <Setter Property="Background" Value="#8B5CF6"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>

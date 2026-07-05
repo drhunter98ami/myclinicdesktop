@@ -132,7 +132,9 @@ namespace MyClinic
                 using var context = new AppDbContext();
                 var labWorks = context.LabWorks.ToList();
 
-                decimal totalPaid = labWorks.Where(l => l.Status == "تم الدفع").Sum(l => l.Cost);
+                // Total paid includes both "تم الدفع" and "تم الدفع ولم يتم الاستلام"
+                decimal totalPaid = labWorks.Where(l => l.Status == "تم الدفع" || l.Status == "تم الدفع ولم يتم الاستلام").Sum(l => l.Cost);
+                // Total required only includes received works (تم الإستلام or تم الدفع), not paid but not received
                 decimal totalRequired = labWorks.Where(l => l.Status == "تم الإستلام" || l.Status == "تم الدفع").Sum(l => l.Cost);
                 decimal remaining = totalRequired - totalPaid;
 
@@ -268,7 +270,16 @@ namespace MyClinic
                     var labWork = context.LabWorks.FirstOrDefault(l => l.Id == id);
                     if (labWork != null)
                     {
-                        labWork.Status = "تم الإستلام";
+                        // If already paid but not received, change to final paid status
+                        if (labWork.Status == "تم الدفع ولم يتم الاستلام")
+                        {
+                            labWork.Status = "تم الدفع";
+                        }
+                        else
+                        {
+                            labWork.Status = "تم الإستلام";
+                        }
+                        
                         labWork.DateReceived = DateTime.Now;
                         context.SaveChanges();
                         LoadLabWorks();
@@ -292,11 +303,19 @@ namespace MyClinic
                     var labWork = context.LabWorks.FirstOrDefault(l => l.Id == id);
                     if (labWork != null)
                     {
-                        labWork.Status = "تم الدفع";
+                        // Set status based on whether work has been received
+                        if (labWork.Status == "تم الإستلام")
+                        {
+                            labWork.Status = "تم الدفع";
+                        }
+                        else
+                        {
+                            labWork.Status = "تم الدفع ولم يتم الاستلام";
+                        }
+                        
                         labWork.DatePaid = DateTime.Now;
                         labWork.AmountPaid = labWork.Cost;
                         
-                        // --- new code ---
                         // add new expense
                         decimal costInSyp = labWork.Cost * _usdToSypRate;
                         var newExpense = new ExpenseEntry
