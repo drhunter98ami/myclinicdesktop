@@ -241,9 +241,6 @@
                 <DataTrigger Binding="{Binding Status}" Value="تم الإستلام">
                     <Setter Property="Visibility" Value="Collapsed"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="تم الدفع">
-                    <Setter Property="Visibility" Value="Collapsed"/>
-                </DataTrigger>
             </Style.Triggers>
         </Style>
 

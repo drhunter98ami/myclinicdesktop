@@ -16,6 +16,7 @@ namespace MyClinic
         public ObservableCollection<ShortageRowModel> NonUrgentItems { get; set; }
 
         private decimal _usdToSypRate = 15000;
+        private ShortageRowModel? _editingItem;
 
         public ShortagesView()
         {
@@ -32,6 +33,32 @@ namespace MyClinic
 
             UrgentItems.CollectionChanged += (_, _) => UpdateTotals();
             NonUrgentItems.CollectionChanged += (_, _) => UpdateTotals();
+
+            GlobalEvents.OnExchangeRateChanged += OnExchangeRateChanged;
+        }
+
+        private void OnExchangeRateChanged()
+        {
+            LoadExchangeRate();
+            RefreshItemsDisplay();
+            UpdateTotals();
+        }
+
+        private void RefreshItemsDisplay()
+        {
+            foreach (var item in UrgentItems)
+            {
+                item.PriceText = item.Price == 0
+                    ? "بدون سعر"
+                    : $"{item.Price.ToString("0.##", CultureInfo.CurrentCulture)} {item.Currency}";
+            }
+
+            foreach (var item in NonUrgentItems)
+            {
+                item.PriceText = item.Price == 0
+                    ? "بدون سعر"
+                    : $"{item.Price.ToString("0.##", CultureInfo.CurrentCulture)} {item.Currency}";
+            }
         }
 
         private void LoadExchangeRate()
@@ -171,6 +198,81 @@ namespace MyClinic
             }
         }
 
+        private void BtnEdit_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.CommandParameter is ShortageRowModel item)
+            {
+                _editingItem = item;
+                TxtEditItemName.Text = item.Item;
+                TxtEditPrice.Text = item.Price.ToString("0.##", CultureInfo.CurrentCulture);
+                CmbEditCurrency.SelectedIndex = item.Currency == "USD" ? 0 : 1;
+                EditPriceDialogOverlay.Visibility = Visibility.Visible;
+                TxtEditPrice.Focus();
+            }
+        }
+
+        private void EditPriceDialogBackdrop_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            EditPriceDialogOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnCloseEditPriceDialog_Click(object sender, RoutedEventArgs e)
+        {
+            EditPriceDialogOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnCancelEditPrice_Click(object sender, RoutedEventArgs e)
+        {
+            EditPriceDialogOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnConfirmEditPrice_Click(object sender, RoutedEventArgs e)
+        {
+            if (_editingItem == null) return;
+
+            if (!decimal.TryParse(TxtEditPrice.Text.Trim(), NumberStyles.Number, CultureInfo.CurrentCulture, out decimal newPrice) || newPrice < 0)
+            {
+                MessageBox.Show("يرجى إدخال سعر صحيح.", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            string newCurrency = (CmbEditCurrency.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "SYP";
+
+            try
+            {
+                using var context = new AppDbContext();
+                var shortage = context.Shortages.FirstOrDefault(s => s.Id == _editingItem.Id);
+                if (shortage != null)
+                {
+                    shortage.Price = newPrice;
+                    shortage.Currency = newCurrency;
+                    context.SaveChanges();
+
+                    // Update the item in the collection
+                    var updatedRow = MapRow(shortage);
+
+                    if (UrgentItems.Contains(_editingItem))
+                    {
+                        var index = UrgentItems.IndexOf(_editingItem);
+                        UrgentItems[index] = updatedRow;
+                    }
+                    else if (NonUrgentItems.Contains(_editingItem))
+                    {
+                        var index = NonUrgentItems.IndexOf(_editingItem);
+                        NonUrgentItems[index] = updatedRow;
+                    }
+
+                    UpdateTotals();
+                    EditPriceDialogOverlay.Visibility = Visibility.Collapsed;
+                    MessageBox.Show("تم تحديث السعر بنجاح", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"خطأ أثناء تحديث السعر: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private async void BtnPurchased_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.CommandParameter is ShortageRowModel item)
@@ -260,13 +362,29 @@ namespace MyClinic
         }
     }
 
-    public sealed class ShortageRowModel
+    public sealed class ShortageRowModel : System.ComponentModel.INotifyPropertyChanged
     {
+        private string _priceText = string.Empty;
+
         public int Id { get; init; }
         public string Item { get; init; } = string.Empty;
         public decimal Price { get; init; }
         public string Currency { get; init; } = "SYP";
-        public string PriceText { get; init; } = string.Empty;
+        public string PriceText
+        {
+            get => _priceText;
+            set
+            {
+                _priceText = value;
+                OnPropertyChanged(nameof(PriceText));
+            }
+        }
         public string CurrencyBadge { get; init; } = "SYP";
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+        }
     }
 }

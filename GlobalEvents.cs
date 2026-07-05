@@ -18,5 +18,12 @@ namespace MyClinic
         {
             OnPatientRecordAdded?.Invoke();
         }
+
+        // حدث يتم إطلاقه عند تغيير سعر الصرف
+        public static event Action? OnExchangeRateChanged;
+        public static void NotifyExchangeRateChanged()
+        {
+            OnExchangeRateChanged?.Invoke();
+        }
     }
 }

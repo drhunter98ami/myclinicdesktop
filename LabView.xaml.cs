@@ -111,6 +111,7 @@ namespace MyClinic
                     context.SaveChanges();
                     _usdToSypRate = rate;
                     UpdateSummary();
+                    GlobalEvents.NotifyExchangeRateChanged();
                     MessageBox.Show("تم حفظ سعر الصرف بنجاح", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
@@ -301,7 +302,7 @@ namespace MyClinic
                         var newExpense = new ExpenseEntry
                         {
                             ExpenseDate = DateTime.Now,
-                            Description = $"تكلفة عمل مخبر لـ {labWork.PatientName}",
+                            Description = $"تكلفة عمل مخبر - {labWork.LabName}",
                             Amount = (double)costInSyp
                         };
                         context.Expenses.Add(newExpense);

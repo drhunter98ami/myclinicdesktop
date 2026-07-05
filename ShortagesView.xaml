@@ -117,11 +117,19 @@
             </Setter>
         </Style>
 
+        <Style TargetType="TextBlock" x:Key="FormLabel">
+            <Setter Property="Foreground" Value="{DynamicResource AppTextPrimary}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
         <DataTemplate x:Key="ShortageItemTemplate">
             <Border Background="{DynamicResource AppInputBg}" BorderBrush="{DynamicResource AppBorder}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,8" Padding="12,8">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
@@ -136,11 +144,15 @@
                         <TextBlock Text="{Binding CurrencyBadge}" Foreground="#10B981" FontSize="11" FontWeight="SemiBold"/>
                     </Border>
 
-                    <Button Grid.Column="2" Content="تم الشراء" Background="#10B981" Foreground="White" Width="80" Height="30" Margin="0,0,8,0"
+                    <Button Grid.Column="2" Content="تعديل" Background="#F59E0B" Foreground="White" Width="60" Height="30" Margin="0,0,8,0"
+                            CommandParameter="{Binding}" Click="BtnEdit_Click"
+                            Style="{StaticResource RoundedButtonStyle}"/>
+
+                    <Button Grid.Column="3" Content="تم الشراء" Background="#10B981" Foreground="White" Width="80" Height="30" Margin="0,0,8,0"
                             CommandParameter="{Binding}" Click="BtnPurchased_Click"
                             Style="{StaticResource RoundedButtonStyle}"/>
 
-                    <Button Grid.Column="3" Content="حذف" Background="#EF4444" Foreground="White" Width="60" Height="30"
+                    <Button Grid.Column="4" Content="حذف" Background="#EF4444" Foreground="White" Width="60" Height="30"
                             CommandParameter="{Binding}" Click="BtnDelete_Click"
                             Style="{StaticResource RoundedButtonStyle}"/>
                 </Grid>
@@ -271,5 +283,85 @@
                 </Grid>
             </Border>
         </Grid>
+
+        <!-- Edit Price Dialog Overlay -->
+        <Grid x:Name="EditPriceDialogOverlay" Panel.ZIndex="20" Visibility="Collapsed" Grid.RowSpan="2">
+        <Border Background="#A00F172A" MouseLeftButtonDown="EditPriceDialogBackdrop_MouseLeftButtonDown"/>
+
+        <Border Width="400" Padding="32" Background="{DynamicResource AppCardBg}" CornerRadius="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border.Effect>
+                <DropShadowEffect Color="#0F172A" BlurRadius="40" ShadowDepth="10" Opacity="0.15"/>
+            </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Dialog Header -->
+                <Grid Grid.Row="0" Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Width="36" Height="36" Background="{DynamicResource AppInputBg}" BorderThickness="0" Click="BtnCloseEditPriceDialog_Click" Cursor="Hand">
+                        <TextBlock Text="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{DynamicResource AppTextSecondary}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="18">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <TextBlock Grid.Column="1" Text="تعديل السعر" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource AppTextPrimary}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,36,0"/>
+                </Grid>
+
+                <!-- Dialog Content -->
+                <StackPanel Grid.Row="1">
+                    <TextBlock Text="الصنف" Style="{StaticResource FormLabel}"/>
+                    <TextBlock x:Name="TxtEditItemName" FontSize="14" Foreground="{DynamicResource AppTextSecondary}" Margin="0,0,0,15"/>
+
+                    <TextBlock Text="السعر" Style="{StaticResource FormLabel}"/>
+                    <TextBox x:Name="TxtEditPrice" Margin="0,0,0,15"/>
+
+                    <TextBlock Text="العملة" Style="{StaticResource FormLabel}"/>
+                    <ComboBox x:Name="CmbEditCurrency" Style="{StaticResource ShortageComboBoxStyle}"
+                              ItemContainerStyle="{StaticResource ShortageComboBoxItemStyle}"
+                              SelectedIndex="0">
+                        <ComboBoxItem Content="USD"/>
+                        <ComboBoxItem Content="SYP"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Dialog Actions -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                    <Button x:Name="BtnCancelEditPrice" Content="إلغاء" Width="100" Height="40" Background="{DynamicResource AppInputBg}" Foreground="{DynamicResource AppTextSecondary}" BorderThickness="0" FontWeight="SemiBold" Cursor="Hand" Margin="0,0,10,0" Click="BtnCancelEditPrice_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="12">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button x:Name="BtnConfirmEditPrice" Content="حفظ" Width="100" Height="40" Background="#2563EB" Foreground="White" BorderThickness="0" FontWeight="SemiBold" Cursor="Hand" Click="BtnConfirmEditPrice_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="12">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
     </Grid>
 </UserControl>
