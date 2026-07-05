@@ -149,6 +149,14 @@ namespace MyClinic.Services
                     await request.DownloadAsync(stream);
                 }
 
+                // Check if downloaded file has content
+                long fileSize = new FileInfo(tempDbPath).Length;
+                if (fileSize < 1024)
+                {
+                    File.Delete(tempDbPath);
+                    return (false, $"الملف المسترد صغير جداً ({fileSize} bytes). قد يكون النسخة الاحتياطية فارغة أو تالفة.");
+                }
+
                 return (true, string.Empty);
             }
             catch (Exception ex)

@@ -43,7 +43,7 @@ namespace MyClinic
             {
                 Directory.CreateDirectory(clinicFolder);
             }
-            dbPath = Path.Combine(clinicFolder, "ClinicData_Test.db");
+            dbPath = Path.Combine(clinicFolder, "ClinicData.db");
             #endif
 
             optionsBuilder.UseSqlite($"Data Source={dbPath};Foreign Keys=True");

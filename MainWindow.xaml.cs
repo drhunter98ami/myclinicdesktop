@@ -182,10 +182,30 @@ namespace MyClinic
             {
                 try
                 {
+                    // Check file size to ensure it's not empty
+                    long fileSize = new FileInfo(tempDbPath).Length;
+                    if (fileSize < 1024) // Less than 1KB is suspicious
+                    {
+                        MessageBox.Show($"ملف الاستعادة صغير جداً ({fileSize} bytes). قد يكون تالفاً أو فارغاً.", "تحذير", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        File.Delete(tempDbPath);
+                        return;
+                    }
+
                     Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+                    
+                    // Close any open connections
+                    System.Threading.Thread.Sleep(500); // Give time for connections to close
+                    
                     if (File.Exists(dbPath))
+                    {
+                        string backupPath = Path.Combine(clinicFolder, $"ClinicData_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.db");
+                        File.Copy(dbPath, backupPath, true);
                         File.Delete(dbPath); 
+                    }
+                    
                     File.Move(tempDbPath, dbPath); 
+                    
+                    MessageBox.Show("تم تطبيق النسخة المستعادة بنجاح.", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {

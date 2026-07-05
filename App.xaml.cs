@@ -127,6 +127,37 @@ public partial class App : Application
         EnsureColumnExists(context, "Shortages", "Price", "REAL NOT NULL DEFAULT 0");
         EnsureColumnExists(context, "Shortages", "Currency", "TEXT NOT NULL DEFAULT 'SYP'");
 
+        context.Database.ExecuteSqlRaw(
+            @"CREATE TABLE IF NOT EXISTS LabWorks (
+                Id INTEGER NOT NULL CONSTRAINT PK_LabWorks PRIMARY KEY AUTOINCREMENT,
+                PatientName TEXT NOT NULL,
+                LabName TEXT NULL,
+                Cost REAL NOT NULL DEFAULT 0,
+                Teeth TEXT NULL,
+                Status TEXT NOT NULL DEFAULT 'تم الإرسال',
+                DateSent TEXT NOT NULL DEFAULT (datetime('now')),
+                DateReceived TEXT NULL,
+                DatePaid TEXT NULL,
+                AmountPaid REAL NOT NULL DEFAULT 0,
+                Notes TEXT NULL
+            );");
+
+        context.Database.ExecuteSqlRaw(
+            @"CREATE TABLE IF NOT EXISTS LabNames (
+                Id INTEGER NOT NULL CONSTRAINT PK_LabNames PRIMARY KEY AUTOINCREMENT,
+                Name TEXT NOT NULL,
+                CreatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+            );");
+
+        context.Database.ExecuteSqlRaw(
+            @"CREATE TABLE IF NOT EXISTS AppSettings (
+                Id INTEGER NOT NULL CONSTRAINT PK_AppSettings PRIMARY KEY AUTOINCREMENT,
+                UsdToSypRate REAL NOT NULL DEFAULT 15000,
+                UpdatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+            );");
+
+        EnsureColumnExists(context, "LabWorks", "LabName", "TEXT NULL");
+
         bool hasUsers = context.Users.Any();
         Window startupWindow = hasUsers && LoginSessionStore.HasValidLoginSession(LoginGracePeriod)
             ? new MainWindow()
