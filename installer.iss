@@ -1,5 +1,5 @@
 #define MyAppName "My Clinic"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.1"
 #define MyAppPublisher "Dr. Ahmed Khalif"
 #define MyAppExeName "MyClinic.exe"
 ; Notice the path is updated to match your .NET 9 Windows target framework
@@ -42,5 +42,6 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Dirs]
-; This ensures the database folder in AppData is cleaned up ONLY if the user uninstalls the app completely
-Name: "{localappdata}\MyClinicApp"; Flags: uninsalwaysuninstall
+; Database folder in AppData - DO NOT delete on upgrade to preserve user data
+; Only deleted when user explicitly uninstalls the application
+Name: "{localappdata}\MyClinicApp"
