@@ -93,57 +93,59 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Margin="0,35,0,0">
-                    <StackPanel HorizontalAlignment="Center" Margin="0,0,0,40">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" FlowDirection="LeftToRight" Margin="0,0,0,10">
-                            <Image Source="Assets/logo.png" Width="45" Height="45" Margin="0,0,15,0" RenderOptions.BitmapScalingMode="HighQuality">
-                                <Image.Clip>
-                                    <EllipseGeometry RadiusX="22.5" RadiusY="22.5" Center="22.5,22.5" />
-                                </Image.Clip>
-                            </Image>
-                            <TextBlock Text="عيادتي" Foreground="White" FontSize="26" FontWeight="Bold" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,0">
-                            <Ellipse Width="8" Height="8" Fill="#00D26A" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="متصل بالإنترنت" Foreground="#A0AAB5" FontSize="13" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </StackPanel>
-
-                    <Button Name="BtnDashboard" Content="الرئيسية" Style="{StaticResource SidebarActiveButton}" Click="BtnDashboard_Click"/>
-                    <Button Name="BtnPatients" Content="سجل المرضى" Style="{StaticResource SidebarButton}" Click="BtnPatients_Click"/>
-                    <Button Name="BtnFinancials" Content="الشؤون المالية" Style="{StaticResource SidebarButton}" Click="BtnFinancials_Click"/>
-                    
-                    <!-- التبويب الجديد: النواقص -->
-                    <Button Name="BtnShortages" Content="النواقص" Style="{StaticResource SidebarButton}" Click="BtnShortages_Click"/>
-                    
-                    <!-- التبويب الجديد: المخبر -->
-                    <Button Name="BtnLab" Content="المخبر" Style="{StaticResource SidebarButton}" Click="BtnLab_Click"/>
-                    
-                    <!-- التبويب الجديد: الإعدادات -->
-                    <Button Name="BtnSettings" Content="الإعدادات" Style="{StaticResource SidebarButton}" Click="BtnSettings_Click"/>
-                    
-                    <Border Margin="15,20,15,5" Height="1" Background="#334155"/>
-                    <Button Name="BtnSyncDrive" Content="مزامنة مع Google Drive" Style="{StaticResource SidebarButton}" Click="BtnSyncDrive_Click"/>
-                    <Button Name="BtnRestoreDrive" Content="استعادة البيانات" Style="{StaticResource SidebarButton}" Click="BtnRestoreDrive_Click"/>
-
-                    <Border Margin="15,10,15,5" Height="1" Background="#334155"/>
-                    
-                    <StackPanel Margin="15,10,15,0">
-                        <TextBlock x:Name="TxtAppTime" Text="--:--:--" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,15">
-                            <TextBlock x:Name="TxtAppDay" Text="اليوم" Foreground="#A0AAB5" FontSize="13" Margin="0,0,5,0"/>
-                            <TextBlock x:Name="TxtAppDate" Text="التاريخ" Foreground="#A0AAB5" FontSize="13"/>
+                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,35,0,0">
+                        <StackPanel HorizontalAlignment="Center" Margin="0,0,0,40">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" FlowDirection="LeftToRight" Margin="0,0,0,10">
+                                <Image Source="Assets/logo.png" Width="45" Height="45" Margin="0,0,15,0" RenderOptions.BitmapScalingMode="HighQuality">
+                                    <Image.Clip>
+                                        <EllipseGeometry RadiusX="22.5" RadiusY="22.5" Center="22.5,22.5" />
+                                    </Image.Clip>
+                                </Image>
+                                <TextBlock Text="عيادتي" Foreground="White" FontSize="26" FontWeight="Bold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,0">
+                                <Ellipse Width="8" Height="8" Fill="#00D26A" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="متصل بالإنترنت" Foreground="#A0AAB5" FontSize="13" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
-                            <TextBlock Text="المزامنة التلقائية" Foreground="#A0AAB5" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <ToggleButton x:Name="AutoSyncToggle" Style="{StaticResource ToggleSwitchStyle}" Checked="AutoSyncToggle_Checked" Unchecked="AutoSyncToggle_Unchecked"/>
-                        </StackPanel>
+                        <Button Name="BtnDashboard" Content="الرئيسية" Style="{StaticResource SidebarActiveButton}" Click="BtnDashboard_Click"/>
+                        <Button Name="BtnPatients" Content="سجل المرضى" Style="{StaticResource SidebarButton}" Click="BtnPatients_Click"/>
+                        <Button Name="BtnFinancials" Content="الشؤون المالية" Style="{StaticResource SidebarButton}" Click="BtnFinancials_Click"/>
                         
-                        <TextBlock x:Name="TxtLastSync" Text="آخر مزامنة: لم يتم" Foreground="#A0AAB5" FontSize="11" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                        <TextBlock x:Name="TxtNextSync" Text="المزامنة القادمة: --:--" Foreground="#A0AAB5" FontSize="11" HorizontalAlignment="Center" Visibility="Collapsed"/>
+                        <!-- التبويب الجديد: النواقص -->
+                        <Button Name="BtnShortages" Content="النواقص" Style="{StaticResource SidebarButton}" Click="BtnShortages_Click"/>
+                        
+                        <!-- التبويب الجديد: المخبر -->
+                        <Button Name="BtnLab" Content="المخبر" Style="{StaticResource SidebarButton}" Click="BtnLab_Click"/>
+                        
+                        <!-- التبويب الجديد: الإعدادات -->
+                        <Button Name="BtnSettings" Content="الإعدادات" Style="{StaticResource SidebarButton}" Click="BtnSettings_Click"/>
+                        
+                        <Border Margin="15,20,15,5" Height="1" Background="#334155"/>
+                        <Button Name="BtnSyncDrive" Content="مزامنة مع Google Drive" Style="{StaticResource SidebarButton}" Click="BtnSyncDrive_Click"/>
+                        <Button Name="BtnRestoreDrive" Content="استعادة البيانات" Style="{StaticResource SidebarButton}" Click="BtnRestoreDrive_Click"/>
+
+                        <Border Margin="15,10,15,5" Height="1" Background="#334155"/>
+                        
+                        <StackPanel Margin="15,10,15,20">
+                            <TextBlock x:Name="TxtAppTime" Text="--:--:--" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,15">
+                                <TextBlock x:Name="TxtAppDay" Text="اليوم" Foreground="#A0AAB5" FontSize="13" Margin="0,0,5,0"/>
+                                <TextBlock x:Name="TxtAppDate" Text="التاريخ" Foreground="#A0AAB5" FontSize="13"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                                <TextBlock Text="المزامنة التلقائية" Foreground="#A0AAB5" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                <ToggleButton x:Name="AutoSyncToggle" Style="{StaticResource ToggleSwitchStyle}" Checked="AutoSyncToggle_Checked" Unchecked="AutoSyncToggle_Unchecked"/>
+                            </StackPanel>
+                            
+                            <TextBlock x:Name="TxtLastSync" Text="آخر مزامنة: لم يتم" Foreground="#A0AAB5" FontSize="11" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="TxtNextSync" Text="المزامنة القادمة: --:--" Foreground="#A0AAB5" FontSize="11" HorizontalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                </ScrollViewer>
 
                 <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,20">
                     <!-- Dark Mode Toggle -->

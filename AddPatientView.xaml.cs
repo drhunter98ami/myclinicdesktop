@@ -786,27 +786,6 @@ namespace MyClinic
                 return;
             }
 
-            // Convert USD to SYP if needed
-            string selectedCurrency = CmbCurrency.SelectedItem is ComboBoxItem item ? item.Content?.ToString() ?? "SYP" : "SYP";
-            if (selectedCurrency == "USD")
-            {
-                try
-                {
-                    using var db = new AppDbContext();
-                    var settings = db.AppSettings.FirstOrDefault();
-                    if (settings != null)
-                    {
-                        decimal exchangeRate = settings.UsdToSypRate;
-                        currentCost = currentCost * exchangeRate;
-                        todayPaid = todayPaid * exchangeRate;
-                    }
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("خطأ في تحويل العملة. سيتم الحفظ بالقيمة المدخلة.", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
-            }
-
             decimal remainingAmount = Math.Max(0, currentCost - todayPaid);
 
             bool isFemale = CmbGender.SelectedIndex == 1;

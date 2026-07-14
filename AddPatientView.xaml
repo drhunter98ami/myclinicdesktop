@@ -341,33 +341,25 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 
-                                <StackPanel Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
                                     <TextBlock Text="البيانات المالية" Foreground="{DynamicResource AppTextPrimary}" FontSize="18" FontWeight="Bold"/>
                                     <TextBlock Text="تفاصيل الدفع والتكلفة" Foreground="{DynamicResource AppTextSecondary}" FontSize="14"/>
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="2" Margin="10,0">
+                                <StackPanel Grid.Column="1" Margin="10,0">
                                     <TextBlock Text="التكلفة الحالية" Style="{StaticResource FormLabel}" HorizontalAlignment="Center"/>
                                     <TextBox x:Name="TxtCurrentCost" Text="0" TextAlignment="Center" Style="{StaticResource ModernTextBox}" TextChanged="FinancialInput_TextChanged"
                                              GotKeyboardFocus="TextBox_GotKeyboardFocus" 
                                              PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"/>
                                 </StackPanel>
-                                <StackPanel Grid.Column="1" Margin="10,0">
+                                <StackPanel Grid.Column="0" Margin="10,0">
                                     <TextBlock Text="دفعة اليوم" Style="{StaticResource FormLabel}" HorizontalAlignment="Center"/>
                                     <TextBox x:Name="TxtTodayPaid" Text="0" TextAlignment="Center" Style="{StaticResource ModernTextBox}" TextChanged="FinancialInput_TextChanged"
                                              GotKeyboardFocus="TextBox_GotKeyboardFocus" 
                                              PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="0" Margin="10,0">
-                                    <TextBlock Text="العملة" Style="{StaticResource FormLabel}" HorizontalAlignment="Center"/>
-                                    <ComboBox x:Name="CmbCurrency" Style="{StaticResource ModernComboBox}" SelectedIndex="0">
-                                        <ComboBoxItem Content="SYP"/>
-                                        <ComboBoxItem Content="USD"/>
-                                    </ComboBox>
                                 </StackPanel>
                             </Grid>
 
