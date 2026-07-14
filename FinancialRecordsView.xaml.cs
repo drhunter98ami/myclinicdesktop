@@ -132,6 +132,7 @@ namespace MyClinic
                     var visits = mergedVisits.Select(visit => new VisitFinanceSnapshot
                     {
                         VisitId = visit.Id,
+                        PatientId = visit.PatientId,
                         VisitDate = visit.VisitDate,
                         PatientName = string.IsNullOrWhiteSpace(visit.Patient?.FullName) ? "مريض بدون اسم" : visit.Patient!.FullName.Trim(),
                         PhoneNumber = visit.Patient?.PhoneNumber ?? string.Empty,
@@ -432,18 +433,57 @@ namespace MyClinic
                 .OrderByDescending(expense => expense.ExpenseDate)
                 .ToList();
 
+            // Build per-patient lookup: patientId → visits that have selected treatments, newest first.
+            // Used to resolve treatment details for payment-only visits (no new treatments in current visit).
+            Dictionary<int, List<VisitFinanceSnapshot>> patientTreatmentHistory = _allVisits
+                .Where(v => !string.IsNullOrWhiteSpace(v.SelectedTreatmentsJson))
+                .GroupBy(v => v.PatientId)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(v => v.VisitDate).ToList());
+
+            static Brush MakeBrush(string hex) =>
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+
             List<IncomeRowModel> incomeRows = filteredVisits
-                .Where(visit => visit.TodayPaid > 0)
-                .Select(visit => new IncomeRowModel
+                .Where(visit => visit.CurrentCost != 0 || visit.TodayPaid > 0)
+                .Select(visit =>
                 {
-                    VisitId = visit.VisitId,
-                    DateText = visit.VisitDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
-                    TimeText = visit.VisitDate.ToString("hh:mm tt", CultureInfo.InvariantCulture),
-                    PatientName = visit.PatientName,
-                    PhoneNumber = visit.PhoneNumber,
-                    RawAmount = visit.TodayPaid,
-                    PaidAmountText = "+" + FormatMoneyCompact(visit.TodayPaid),
-                    SelectedTreatments = ParseSelectedTreatments(visit.SelectedTreatmentsJson)
+                    bool hasPaid = visit.TodayPaid > 0;
+
+                    // Determine which treatments to show in the details overlay:
+                    // 1. Current visit has new treatments → use them directly.
+                    // 2. Payment-only visit (no treatments this visit) → fall back to the
+                    //    most recent prior visit of the same patient that had treatments.
+                    IReadOnlyList<SelectedTreatment> treatments;
+                    if (!string.IsNullOrWhiteSpace(visit.SelectedTreatmentsJson))
+                    {
+                        treatments = ParseSelectedTreatments(visit.SelectedTreatmentsJson);
+                    }
+                    else if (patientTreatmentHistory.TryGetValue(visit.PatientId, out List<VisitFinanceSnapshot>? history))
+                    {
+                        VisitFinanceSnapshot? prevVisit = history.FirstOrDefault(v => v.VisitId != visit.VisitId);
+                        treatments = ParseSelectedTreatments(prevVisit?.SelectedTreatmentsJson);
+                    }
+                    else
+                    {
+                        treatments = Array.Empty<SelectedTreatment>();
+                    }
+
+                    return new IncomeRowModel
+                    {
+                        VisitId = visit.VisitId,
+                        DateText = visit.VisitDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
+                        TimeText = visit.VisitDate.ToString("hh:mm tt", CultureInfo.InvariantCulture),
+                        PatientName = visit.PatientName,
+                        PhoneNumber = visit.PhoneNumber,
+                        RawAmount = visit.TodayPaid,
+                        PaidAmountText = hasPaid
+                            ? "+" + FormatMoneyCompact(visit.TodayPaid)
+                            : FormatMoneyCompact(visit.CurrentCost),
+                        PaidAmountBrush = hasPaid
+                            ? MakeBrush("#10B981")   // green  – payment received
+                            : MakeBrush("#F59E0B"),  // amber  – billed, not yet paid
+                        SelectedTreatments = treatments
+                    };
                 })
                 .ToList();
 
@@ -911,6 +951,7 @@ namespace MyClinic
         private sealed class VisitFinanceSnapshot
         {
             public int VisitId { get; init; }
+            public int PatientId { get; init; }
             public DateTime VisitDate { get; init; }
             public string PatientName { get; init; } = string.Empty;
             public string PhoneNumber { get; init; } = string.Empty;
@@ -935,6 +976,7 @@ namespace MyClinic
             public string PatientName { get; init; } = string.Empty;
             public string PhoneNumber { get; init; } = string.Empty;
             public string PaidAmountText { get; init; } = string.Empty;
+            public Brush PaidAmountBrush { get; init; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981"));
             public double RawAmount { get; init; }
             public IReadOnlyList<SelectedTreatment> SelectedTreatments { get; init; } = Array.Empty<SelectedTreatment>();
             public bool HasSelectedTreatments => SelectedTreatments.Count > 0;

@@ -455,7 +455,7 @@
                                                         <TextBlock Grid.Column="4" Text="{Binding TimeText}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AppTextSecondary}"/>
                                                         <TextBlock Grid.Column="3" Text="{Binding PatientName}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AppTextPrimary}" FontWeight="SemiBold"/>
                                                         <TextBlock Grid.Column="2" Text="{Binding PhoneNumber}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AppTextSecondary}"/>
-                                                        <TextBlock Grid.Column="1" Text="{Binding PaidAmountText}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#10B981" FontWeight="Bold" FontSize="16"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding PaidAmountText}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{Binding PaidAmountBrush}" FontWeight="Bold" FontSize="16"/>
                                                         <Button Grid.Column="0" Tag="{Binding}" Click="BtnIncomeDetails_Click"
                                                                 HorizontalAlignment="Center" VerticalAlignment="Center"
                                                                 Width="36" Height="36" Cursor="Hand"
