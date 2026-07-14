@@ -433,12 +433,53 @@ namespace MyClinic
                 .OrderByDescending(expense => expense.ExpenseDate)
                 .ToList();
 
-            // Build per-patient lookup: patientId → visits that have selected treatments, newest first.
-            // Used to resolve treatment details for payment-only visits (no new treatments in current visit).
-            Dictionary<int, List<VisitFinanceSnapshot>> patientTreatmentHistory = _allVisits
-                .Where(v => !string.IsNullOrWhiteSpace(v.SelectedTreatmentsJson))
+            // Walk each patient's visits chronologically to track which treatment batches
+            // remain unpaid as of each visit. This lets payment-only visits show ALL
+            // outstanding treatments (not just the most recent batch), and ensures
+            // details differ per visit when new treatments/costs are added.
+            Dictionary<int, IReadOnlyList<SelectedTreatment>> treatmentsByVisitId = new();
+
+            var patientChronologicalVisits = _allVisits
                 .GroupBy(v => v.PatientId)
-                .ToDictionary(g => g.Key, g => g.OrderByDescending(v => v.VisitDate).ToList());
+                .ToDictionary(g => g.Key, g => g.OrderBy(v => v.VisitDate).ThenBy(v => v.VisitId).ToList());
+
+            foreach (var (_, visits) in patientChronologicalVisits)
+            {
+                double runningBalance = 0;
+                List<IReadOnlyList<SelectedTreatment>> activeBatches = new();
+
+                foreach (var visit in visits)
+                {
+                    // If this visit introduces new treatments, register them as a new batch
+                    if (!string.IsNullOrWhiteSpace(visit.SelectedTreatmentsJson))
+                    {
+                        var parsed = ParseSelectedTreatments(visit.SelectedTreatmentsJson);
+                        if (parsed.Count > 0)
+                            activeBatches.Add(parsed);
+                    }
+
+                    // Determine which treatments to display for this visit:
+                    //  - Visit with new treatments → show its own treatments
+                    //  - Payment-only visit → show ALL currently unpaid treatment batches
+                    if (!string.IsNullOrWhiteSpace(visit.SelectedTreatmentsJson))
+                    {
+                        treatmentsByVisitId[visit.VisitId] = ParseSelectedTreatments(visit.SelectedTreatmentsJson);
+                    }
+                    else
+                    {
+                        treatmentsByVisitId[visit.VisitId] = activeBatches
+                            .SelectMany(b => b)
+                            .ToList();
+                    }
+
+                    // Update running balance (CurrentCost can be negative for forgiveness)
+                    runningBalance += visit.CurrentCost - visit.TodayPaid;
+
+                    // When fully paid off, all active batches are settled
+                    if (runningBalance <= 0.01)
+                        activeBatches.Clear();
+                }
+            }
 
             static Brush MakeBrush(string hex) =>
                 new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
@@ -449,24 +490,8 @@ namespace MyClinic
                 {
                     bool hasPaid = visit.TodayPaid > 0;
 
-                    // Determine which treatments to show in the details overlay:
-                    // 1. Current visit has new treatments → use them directly.
-                    // 2. Payment-only visit (no treatments this visit) → fall back to the
-                    //    most recent prior visit of the same patient that had treatments.
-                    IReadOnlyList<SelectedTreatment> treatments;
-                    if (!string.IsNullOrWhiteSpace(visit.SelectedTreatmentsJson))
-                    {
-                        treatments = ParseSelectedTreatments(visit.SelectedTreatmentsJson);
-                    }
-                    else if (patientTreatmentHistory.TryGetValue(visit.PatientId, out List<VisitFinanceSnapshot>? history))
-                    {
-                        VisitFinanceSnapshot? prevVisit = history.FirstOrDefault(v => v.VisitId != visit.VisitId);
-                        treatments = ParseSelectedTreatments(prevVisit?.SelectedTreatmentsJson);
-                    }
-                    else
-                    {
-                        treatments = Array.Empty<SelectedTreatment>();
-                    }
+                    treatmentsByVisitId.TryGetValue(visit.VisitId, out IReadOnlyList<SelectedTreatment>? treatments);
+                    treatments ??= Array.Empty<SelectedTreatment>();
 
                     return new IncomeRowModel
                     {
