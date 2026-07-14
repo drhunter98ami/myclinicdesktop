@@ -113,6 +113,7 @@ public partial class App : Application
         EnsureColumnExists(context, "Visits", "CurrentCost", "REAL NOT NULL DEFAULT 0");
         EnsureColumnExists(context, "Visits", "TodayPaid", "REAL NOT NULL DEFAULT 0");
         EnsureColumnExists(context, "Visits", "RemainingAmount", "REAL NOT NULL DEFAULT 0");
+        EnsureColumnExists(context, "Visits", "SelectedTreatmentsJson", "TEXT NULL");
 
         context.Database.ExecuteSqlRaw(
             @"CREATE TABLE IF NOT EXISTS Shortages (

@@ -1172,6 +1172,68 @@
                                 </StackPanel>
                             </Border>
 
+                            <!-- Selected Treatments section -->
+                            <Border Style="{StaticResource DetailSectionStyle}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,16">
+                                        <TextBlock Text="&#xE8CB;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#0EA5A8" Margin="0,0,10,0"/>
+                                        <TextBlock Text="العلاجات المحددة" FontFamily="Traditional Arabic" FontSize="25" FontWeight="Bold" Foreground="{DynamicResource AppTextPrimary}"/>
+                                    </StackPanel>
+
+                                    <ItemsControl ItemsSource="{Binding SelectedTreatments}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,0,0,8" Padding="16,12" CornerRadius="14" Background="{DynamicResource AppInputBg}" BorderBrush="{DynamicResource AppBorder}" BorderThickness="1">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{Binding TreatmentName}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource AppTextPrimary}" VerticalAlignment="Center" TextAlignment="Right"/>
+                                                        <Border Grid.Column="1" Padding="10,4" CornerRadius="8" Background="#E0F2FE" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                            <TextBlock FontSize="14" Foreground="#0369A1">
+                                                                <Run Text="×"/>
+                                                                <Run Text="{Binding Quantity}"/>
+                                                            </TextBlock>
+                                                        </Border>
+                                                        <Border Grid.Column="2" Padding="10,4" CornerRadius="8" Background="#F0FDF4" VerticalAlignment="Center">
+                                                            <TextBlock FontSize="14" Foreground="#15803D" FontWeight="SemiBold">
+                                                                <Run Text="{Binding Cost, StringFormat={}{0:0.##}}"/>
+                                                                <Run Text=" "/>
+                                                                <Run Text="{Binding Currency}"/>
+                                                            </TextBlock>
+                                                        </Border>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                        <ItemsControl.Style>
+                                            <Style TargetType="ItemsControl">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasSelectedTreatments}" Value="False">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ItemsControl.Style>
+                                    </ItemsControl>
+
+                                    <TextBlock Text="لا توجد علاجات محددة لهذه الزيارة." FontSize="17" Foreground="{DynamicResource AppTextSecondary}" HorizontalAlignment="Right">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasSelectedTreatments}" Value="False">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+
                             <!-- Prescription -->
                             <Border Style="{StaticResource DetailSectionStyle}">
                                 <StackPanel>

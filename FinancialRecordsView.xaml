@@ -425,12 +425,14 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="80"/>
                                         <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="80"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="4" Text="التاريخ" Style="{StaticResource TableHeaderTextStyle}"/>
-                                    <TextBlock Grid.Column="3" Text="الوقت" Style="{StaticResource TableHeaderTextStyle}"/>
-                                    <TextBlock Grid.Column="2" Text="اسم المريض/المصدر" Style="{StaticResource TableHeaderTextStyle}"/>
-                                    <TextBlock Grid.Column="1" Text="الهاتف" Style="{StaticResource TableHeaderTextStyle}"/>
-                                    <TextBlock Grid.Column="0" Text="المبلغ المدفوع" Style="{StaticResource TableHeaderTextStyle}"/>
+                                    <TextBlock Grid.Column="5" Text="التاريخ" Style="{StaticResource TableHeaderTextStyle}"/>
+                                    <TextBlock Grid.Column="4" Text="الوقت" Style="{StaticResource TableHeaderTextStyle}"/>
+                                    <TextBlock Grid.Column="3" Text="اسم المريض/المصدر" Style="{StaticResource TableHeaderTextStyle}"/>
+                                    <TextBlock Grid.Column="2" Text="الهاتف" Style="{StaticResource TableHeaderTextStyle}"/>
+                                    <TextBlock Grid.Column="1" Text="المبلغ المدفوع" Style="{StaticResource TableHeaderTextStyle}"/>
+                                    <TextBlock Grid.Column="0" Text="التفاصيل" Style="{StaticResource TableHeaderTextStyle}"/>
                                 </Grid>
                             </Border>
 
@@ -439,7 +441,7 @@
                                     <ItemsControl x:Name="IncomeItemsControl">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Padding="20,16" BorderBrush="{DynamicResource AppBorder}" BorderThickness="0,0,0,1">
+                                                <Border Padding="20,12" BorderBrush="{DynamicResource AppBorder}" BorderThickness="0,0,0,1">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="100"/>
@@ -447,12 +449,26 @@
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="80"/>
                                                             <ColumnDefinition Width="90"/>
+                                                            <ColumnDefinition Width="80"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="4" Text="{Binding DateText}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AppTextSecondary}"/>
-                                                        <TextBlock Grid.Column="3" Text="{Binding TimeText}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AppTextSecondary}"/>
-                                                        <TextBlock Grid.Column="2" Text="{Binding PatientName}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AppTextPrimary}" FontWeight="SemiBold"/>
-                                                        <TextBlock Grid.Column="1" Text="{Binding PhoneNumber}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AppTextSecondary}"/>
-                                                        <TextBlock Grid.Column="0" Text="{Binding PaidAmountText}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#10B981" FontWeight="Bold" FontSize="16"/>
+                                                        <TextBlock Grid.Column="5" Text="{Binding DateText}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AppTextSecondary}"/>
+                                                        <TextBlock Grid.Column="4" Text="{Binding TimeText}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AppTextSecondary}"/>
+                                                        <TextBlock Grid.Column="3" Text="{Binding PatientName}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AppTextPrimary}" FontWeight="SemiBold"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding PhoneNumber}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AppTextSecondary}"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding PaidAmountText}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#10B981" FontWeight="Bold" FontSize="16"/>
+                                                        <Button Grid.Column="0" Tag="{Binding}" Click="BtnIncomeDetails_Click"
+                                                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                Width="36" Height="36" Cursor="Hand"
+                                                                Background="#0EA5A8" BorderThickness="0" ToolTip="عرض تفاصيل العلاجات">
+                                                            <Button.Template>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                                                                        <TextBlock Text="&#xE8A7;" FontFamily="Segoe MDL2 Assets" FontSize="15" Foreground="White"
+                                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Button.Template>
+                                                        </Button>
                                                     </Grid>
                                                 </Border>
                                             </DataTemplate>
@@ -690,6 +706,99 @@
                 </Border>
             </Grid>
         </ScrollViewer>
+
+        <!-- Income Treatments Overlay -->
+        <Border x:Name="IncomeTreatmentsOverlay" Background="#99000000" Visibility="Collapsed" Panel.ZIndex="50"
+                MouseLeftButtonDown="IncomeTreatmentsDimmer_MouseLeftButtonDown">
+            <Border Width="620" MaxHeight="540" Background="{DynamicResource AppCardBg}" CornerRadius="22"
+                    BorderBrush="{DynamicResource AppBorder}" BorderThickness="1" Padding="0"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MouseLeftButtonDown="Border_MouseLeftButtonDown_StopPropagation">
+                <Grid FlowDirection="RightToLeft">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="24,20,24,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Content="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                Foreground="{DynamicResource AppTextSecondary}" Background="Transparent"
+                                BorderThickness="0" Cursor="Hand" Click="BtnCloseIncomeTreatmentsOverlay_Click"/>
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                            <TextBlock x:Name="TxtIncomeTreatmentsPatient" Text="العلاجات المحددة"
+                                       FontFamily="Traditional Arabic" FontSize="24" FontWeight="Bold"
+                                       Foreground="{DynamicResource AppTextPrimary}"/>
+                            <TextBlock x:Name="TxtIncomeTreatmentsDate" FontSize="13"
+                                       Foreground="{DynamicResource AppTextSecondary}" Margin="0,-4,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Divider -->
+                    <Border Grid.Row="1" Height="1" Background="{DynamicResource AppBorder}"/>
+
+                    <!-- Table header -->
+                    <Border Grid.Row="2" Background="{DynamicResource AppInputBg}" Padding="24,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="120"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="2" Text="العلاج" Style="{StaticResource TableHeaderTextStyle}" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="1" Text="الكمية" Style="{StaticResource TableHeaderTextStyle}" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="0" Text="التكلفة" Style="{StaticResource TableHeaderTextStyle}" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Items -->
+                    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" MaxHeight="320">
+                        <StackPanel>
+                            <ItemsControl x:Name="IncomeTreatmentsItemsControl">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="24,14" BorderBrush="{DynamicResource AppBorder}" BorderThickness="0,0,0,1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="80"/>
+                                                    <ColumnDefinition Width="120"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="2" Text="{Binding TreatmentName}" FontSize="16" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource AppTextPrimary}" VerticalAlignment="Center" HorizontalAlignment="Right" TextWrapping="Wrap"/>
+                                                <TextBlock Grid.Column="1" FontSize="15" Foreground="#0369A1" FontWeight="Bold"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Run Text="×"/>
+                                                    <Run Text="{Binding Quantity}"/>
+                                                </TextBlock>
+                                                <TextBlock Grid.Column="0" FontSize="15" Foreground="#15803D" FontWeight="Bold"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Run Text="{Binding Cost, StringFormat={}{0:0.##}}"/>
+                                                    <Run Text=" "/>
+                                                    <Run Text="{Binding Currency}"/>
+                                                </TextBlock>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock x:Name="EmptyIncomeTreatmentsText"
+                                       Text="لا توجد علاجات محددة لهذه الزيارة."
+                                       Margin="0,32,0,32" FontSize="15"
+                                       Foreground="{DynamicResource AppTextSecondary}"
+                                       HorizontalAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Border>
 
         <!-- Loading Overlay -->
         <Border x:Name="LoadingOverlay" Background="#99000000" Visibility="Collapsed" Panel.ZIndex="30">

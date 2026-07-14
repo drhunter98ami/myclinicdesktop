@@ -223,8 +223,8 @@ namespace MyClinic
                 TreatmentPlanText      = visit.TreatmentPlanText,
                 FinalTreatmentText     = visit.FinalTreatmentText,
                 PrescriptionItems      = visit.PrescriptionItems,
+                SelectedTreatments     = visit.SelectedTreatments,
                 AttachmentItems        = attachmentCollection
-                
             };
 
             VisitDetailsModal.DataContext = viewModel;
@@ -752,8 +752,25 @@ namespace MyClinic
                 TreatmentPlanText    = NormalizeOrFallback(v.TreatmentPlanNotes, "لا توجد خطة علاج أو ملاحظات إضافية."),
                 FinalTreatmentText   = NormalizeOrFallback(v.FinalTreatment,     "لا يوجد إجراء نهائي مسجل."),
                 PrescriptionItems    = rx,
-                AttachmentPaths      = paths
+                AttachmentPaths      = paths,
+                SelectedTreatments   = ParseSelectedTreatments(v.SelectedTreatmentsJson)
             };
+        }
+
+        private static IReadOnlyList<SelectedTreatment> ParseSelectedTreatments(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return Array.Empty<SelectedTreatment>();
+            try
+            {
+                var items = JsonSerializer.Deserialize<List<SelectedTreatment>>(json);
+                return items?.Where(t => !string.IsNullOrWhiteSpace(t.TreatmentName)).ToList()
+                       ?? (IReadOnlyList<SelectedTreatment>)Array.Empty<SelectedTreatment>();
+            }
+            catch (JsonException)
+            {
+                return Array.Empty<SelectedTreatment>();
+            }
         }
 
         // Loads bitmaps with reduced decode size to save memory & speed up decode
@@ -1004,6 +1021,7 @@ namespace MyClinic
         public string   FinalTreatmentText  { get; init; } = "لا يوجد إجراء نهائي مسجل.";
         public IReadOnlyList<PrescriptionDisplayItem> PrescriptionItems { get; init; } = Array.Empty<PrescriptionDisplayItem>();
         public IReadOnlyList<string>                  AttachmentPaths   { get; init; } = Array.Empty<string>();
+        public IReadOnlyList<SelectedTreatment>       SelectedTreatments { get; init; } = Array.Empty<SelectedTreatment>();
     }
 
     public sealed class VisitDetailsViewModel
@@ -1031,9 +1049,11 @@ namespace MyClinic
         public string TreatmentPlanText     { get; init; } = "لا توجد خطة علاج أو ملاحظات إضافية.";
         public string FinalTreatmentText    { get; init; } = "لا يوجد إجراء نهائي مسجل.";
         public IReadOnlyList<PrescriptionDisplayItem> PrescriptionItems { get; init; } = Array.Empty<PrescriptionDisplayItem>();
+        public IReadOnlyList<SelectedTreatment>       SelectedTreatments { get; init; } = Array.Empty<SelectedTreatment>();
         public ObservableCollection<VisitAttachmentItem> AttachmentItems { get; init; } = new();
 
-        public bool   HasTeeth           => Teeth.Count > 0;
+        public bool   HasTeeth               => Teeth.Count > 0;
+        public bool   HasSelectedTreatments  => SelectedTreatments.Count > 0;
         public bool   HasFinalTreatment  => !string.IsNullOrWhiteSpace(FinalTreatmentText)
                                          && FinalTreatmentText != "لا يوجد إجراء نهائي مسجل.";
         public bool   HasPrescriptions   => PrescriptionItems.Count > 0;

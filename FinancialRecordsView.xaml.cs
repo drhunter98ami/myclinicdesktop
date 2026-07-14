@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -130,12 +131,14 @@ namespace MyClinic
 
                     var visits = mergedVisits.Select(visit => new VisitFinanceSnapshot
                     {
+                        VisitId = visit.Id,
                         VisitDate = visit.VisitDate,
                         PatientName = string.IsNullOrWhiteSpace(visit.Patient?.FullName) ? "مريض بدون اسم" : visit.Patient!.FullName.Trim(),
                         PhoneNumber = visit.Patient?.PhoneNumber ?? string.Empty,
                         CurrentCost = visit.CurrentCost,
                         TodayPaid = visit.TodayPaid,
-                        RemainingAmount = visit.RemainingAmount
+                        RemainingAmount = visit.RemainingAmount,
+                        SelectedTreatmentsJson = visit.SelectedTreatmentsJson
                     }).ToList();
 
                     _allVisits.AddRange(visits);
@@ -433,12 +436,14 @@ namespace MyClinic
                 .Where(visit => visit.TodayPaid > 0)
                 .Select(visit => new IncomeRowModel
                 {
+                    VisitId = visit.VisitId,
                     DateText = visit.VisitDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
                     TimeText = visit.VisitDate.ToString("hh:mm tt", CultureInfo.InvariantCulture),
                     PatientName = visit.PatientName,
                     PhoneNumber = visit.PhoneNumber,
                     RawAmount = visit.TodayPaid,
-                    PaidAmountText = "+" + FormatMoneyCompact(visit.TodayPaid)
+                    PaidAmountText = "+" + FormatMoneyCompact(visit.TodayPaid),
+                    SelectedTreatments = ParseSelectedTreatments(visit.SelectedTreatmentsJson)
                 })
                 .ToList();
 
@@ -836,6 +841,61 @@ namespace MyClinic
                    decimal.TryParse(trimmedValue, NumberStyles.Number, CultureInfo.InvariantCulture, out result);
         }
 
+        private void BtnIncomeDetails_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not FrameworkElement { Tag: IncomeRowModel row })
+                return;
+
+            TxtIncomeTreatmentsPatient.Text = row.PatientName;
+            TxtIncomeTreatmentsDate.Text = $"{row.DateText}  {row.TimeText}";
+
+            if (row.HasSelectedTreatments)
+            {
+                IncomeTreatmentsItemsControl.ItemsSource = row.SelectedTreatments;
+                EmptyIncomeTreatmentsText.Visibility = Visibility.Collapsed;
+                IncomeTreatmentsItemsControl.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                IncomeTreatmentsItemsControl.ItemsSource = null;
+                IncomeTreatmentsItemsControl.Visibility = Visibility.Collapsed;
+                EmptyIncomeTreatmentsText.Visibility = Visibility.Visible;
+            }
+
+            IncomeTreatmentsOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void BtnCloseIncomeTreatmentsOverlay_Click(object sender, RoutedEventArgs e)
+        {
+            IncomeTreatmentsOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void IncomeTreatmentsDimmer_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            IncomeTreatmentsOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void Border_MouseLeftButtonDown_StopPropagation(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+        }
+
+        private static IReadOnlyList<SelectedTreatment> ParseSelectedTreatments(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return Array.Empty<SelectedTreatment>();
+            try
+            {
+                var items = JsonSerializer.Deserialize<List<SelectedTreatment>>(json);
+                return items?.Where(t => !string.IsNullOrWhiteSpace(t.TreatmentName)).ToList()
+                       ?? (IReadOnlyList<SelectedTreatment>)Array.Empty<SelectedTreatment>();
+            }
+            catch (JsonException)
+            {
+                return Array.Empty<SelectedTreatment>();
+            }
+        }
+
         private static string FormatMoney(double amount)
         {
             return $"{amount.ToString("0.##", CultureInfo.CurrentCulture)} ل.س";
@@ -850,12 +910,14 @@ namespace MyClinic
 
         private sealed class VisitFinanceSnapshot
         {
+            public int VisitId { get; init; }
             public DateTime VisitDate { get; init; }
             public string PatientName { get; init; } = string.Empty;
             public string PhoneNumber { get; init; } = string.Empty;
             public double CurrentCost { get; init; }
             public double TodayPaid { get; init; }
             public double RemainingAmount { get; init; }
+            public string? SelectedTreatmentsJson { get; init; }
         }
 
         private sealed class ExpenseSnapshot
@@ -867,12 +929,15 @@ namespace MyClinic
 
         public sealed class IncomeRowModel
         {
+            public int VisitId { get; init; }
             public string DateText { get; init; } = string.Empty;
             public string TimeText { get; init; } = string.Empty;
             public string PatientName { get; init; } = string.Empty;
             public string PhoneNumber { get; init; } = string.Empty;
             public string PaidAmountText { get; init; } = string.Empty;
             public double RawAmount { get; init; }
+            public IReadOnlyList<SelectedTreatment> SelectedTreatments { get; init; } = Array.Empty<SelectedTreatment>();
+            public bool HasSelectedTreatments => SelectedTreatments.Count > 0;
         }
 
         public sealed class ExpenseRowModel

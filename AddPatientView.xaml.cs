@@ -379,8 +379,8 @@ namespace MyClinic
                 Teeth = visit.ToothIds,
                 TreatmentPlanText = visit.TreatmentPlanText,
                 PrescriptionItems = visit.PrescriptionItems,
+                SelectedTreatments = visit.SelectedTreatments,
                 AttachmentItems = attachmentCollection
-                
             };
 
             VisitDetailsModal.DataContext = viewModel;
@@ -1289,8 +1289,25 @@ namespace MyClinic
                 ToothIds = toothIds,
                 TreatmentPlanText = NormalizeOrFallback(visit.TreatmentPlanNotes, "لا توجد خطة علاج أو ملاحظات إضافية."),
                 PrescriptionItems = prescriptionItems,
-                AttachmentPaths = attachmentPaths
+                AttachmentPaths = attachmentPaths,
+                SelectedTreatments = ParseSelectedTreatments(visit.SelectedTreatmentsJson)
             };
+        }
+
+        private static IReadOnlyList<SelectedTreatment> ParseSelectedTreatments(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return Array.Empty<SelectedTreatment>();
+            try
+            {
+                List<SelectedTreatment>? items = JsonSerializer.Deserialize<List<SelectedTreatment>>(json);
+                return items?.Where(t => !string.IsNullOrWhiteSpace(t.TreatmentName)).ToList()
+                       ?? (IReadOnlyList<SelectedTreatment>)Array.Empty<SelectedTreatment>();
+            }
+            catch (JsonException)
+            {
+                return Array.Empty<SelectedTreatment>();
+            }
         }
 
         private static IReadOnlyList<VisitAttachmentItem> LoadAttachmentItems(IReadOnlyList<string> attachmentPaths)
