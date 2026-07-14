@@ -16,7 +16,7 @@ namespace MyClinic.Migrations
                 type: "TEXT",
                 maxLength: 3,
                 nullable: false,
-                defaultValue: "SYP");
+                defaultValue: "");
         }
 
         /// <inheritdoc />

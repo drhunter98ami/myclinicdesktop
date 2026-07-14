@@ -53,36 +53,12 @@ namespace MyClinic
 
             LoadMedicines(); // Loads local JSON record of previously entered medicines
             LoadTreatments(); // Load treatments from database
-            LoadCurrencySettings(); // Load default currency from settings
 
             UpdateRemainingVisitAmount();
             UpdateFemaleDetailsVisibility();
             UpdatePregnancyMonthVisibility();
             RefreshPrescriptionList();
             RefreshSelectedImagesList();
-        }
-
-        private void LoadCurrencySettings()
-        {
-            try
-            {
-                using var db = new AppDbContext();
-                var settings = db.AppSettings.FirstOrDefault();
-                if (settings != null)
-                {
-                    var currencyItem = CmbCurrency.Items
-                        .OfType<ComboBoxItem>()
-                        .FirstOrDefault(item => item.Content?.ToString() == settings.DefaultCurrency);
-                    if (currencyItem != null)
-                    {
-                        CmbCurrency.SelectedItem = currencyItem;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // If loading fails, keep default selection
-            }
         }
 
         #region Medicine Persistence & Autofill Logic
@@ -205,6 +181,7 @@ namespace MyClinic
                         TreatmentId = treatment.Id,
                         TreatmentName = treatment.TreatmentName,
                         Cost = treatment.Cost,
+                        Currency = treatment.Currency,
                         IsSelected = false,
                         Quantity = 1
                     });
@@ -234,7 +211,27 @@ namespace MyClinic
                 if (item.IsSelected)
                 {
                     int quantity = item.Quantity > 0 ? item.Quantity : 1;
-                    total += item.Cost * quantity;
+                    decimal cost = item.Cost;
+                    
+                    // Convert USD to SYP if needed
+                    if (item.Currency == "USD")
+                    {
+                        try
+                        {
+                            using var db = new AppDbContext();
+                            var settings = db.AppSettings.FirstOrDefault();
+                            if (settings != null)
+                            {
+                                cost = cost * settings.UsdToSypRate;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            // If conversion fails, use original cost
+                        }
+                    }
+                    
+                    total += cost * quantity;
                 }
             }
 
@@ -254,6 +251,7 @@ namespace MyClinic
                         TreatmentId = item.TreatmentId,
                         TreatmentName = item.TreatmentName,
                         Cost = item.Cost,
+                        Currency = item.Currency,
                         Quantity = item.Quantity > 0 ? item.Quantity : 1
                     });
                 }

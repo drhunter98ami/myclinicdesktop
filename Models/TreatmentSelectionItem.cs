@@ -10,6 +10,7 @@ namespace MyClinic.Models
         public int TreatmentId { get; set; }
         public string TreatmentName { get; set; } = string.Empty;
         public decimal Cost { get; set; }
+        public string Currency { get; set; } = "SYP";
 
         public bool IsSelected
         {
@@ -44,6 +45,7 @@ namespace MyClinic.Models
         public int TreatmentId { get; set; }
         public string TreatmentName { get; set; } = string.Empty;
         public decimal Cost { get; set; }
+        public string Currency { get; set; } = "SYP";
         public int Quantity { get; set; }
     }
 }

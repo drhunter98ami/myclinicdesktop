@@ -18,34 +18,14 @@ namespace MyClinic
             InitializeComponent();
             TreatmentItemsControl.ItemsSource = _treatmentCosts;
             Loaded += SettingsView_Loaded;
+            
+            // Set default currency selection
+            CmbTreatmentCurrency.SelectedIndex = 0;
         }
 
         private async void SettingsView_Loaded(object sender, RoutedEventArgs e)
         {
             await LoadTreatmentsAsync();
-            LoadCurrencySettings();
-        }
-
-        private void LoadCurrencySettings()
-        {
-            try
-            {
-                using var db = new AppDbContext();
-                var settings = db.AppSettings.FirstOrDefault();
-                if (settings != null)
-                {
-                    CmbCurrency.SelectedItem = settings.DefaultCurrency;
-                }
-                else
-                {
-                    CmbCurrency.SelectedItem = "SYP";
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"خطأ في تحميل إعدادات العملة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
-                CmbCurrency.SelectedItem = "SYP";
-            }
         }
 
         private async Task LoadTreatmentsAsync()
@@ -73,6 +53,7 @@ namespace MyClinic
         {
             string treatmentName = TxtTreatmentName.Text.Trim();
             string costText = TxtTreatmentCost.Text.Trim();
+            string currency = CmbTreatmentCurrency.SelectedItem is ComboBoxItem item ? item.Content?.ToString() ?? "SYP" : "SYP";
 
             if (string.IsNullOrWhiteSpace(treatmentName))
             {
@@ -95,7 +76,8 @@ namespace MyClinic
                 var newTreatment = new TreatmentCost
                 {
                     TreatmentName = treatmentName,
-                    Cost = cost
+                    Cost = cost,
+                    Currency = currency
                 };
 
                 db.TreatmentCosts.Add(newTreatment);
@@ -145,33 +127,6 @@ namespace MyClinic
                     {
                         MessageBox.Show($"خطأ في حذف العلاج: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
-                }
-            }
-        }
-
-        private async void CmbCurrency_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (CmbCurrency.SelectedItem is string selectedCurrency)
-            {
-                try
-                {
-                    using var db = new AppDbContext();
-                    var settings = db.AppSettings.FirstOrDefault();
-                    if (settings != null)
-                    {
-                        settings.DefaultCurrency = selectedCurrency;
-                        settings.UpdatedAt = DateTime.Now;
-                    }
-                    else
-                    {
-                        settings = new AppSettings { DefaultCurrency = selectedCurrency };
-                        db.AppSettings.Add(settings);
-                    }
-                    await db.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"خطأ في حفظ إعدادات العملة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }

@@ -12,5 +12,9 @@ namespace MyClinic.Models
 
         [Required]
         public decimal Cost { get; set; }
+
+        [Required]
+        [MaxLength(3)]
+        public string Currency { get; set; } = "SYP";
     }
 }

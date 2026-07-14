@@ -39,6 +39,80 @@
             </Setter>
         </Style>
 
+        <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="{DynamicResource AppInputBg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorder}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextPrimary}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+                            <Grid>
+                                <ToggleButton x:Name="ToggleButton" 
+                                              Background="Transparent"
+                                              BorderThickness="0"
+                                              IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                              ClickMode="Press"/>
+                                <ContentPresenter x:Name="ContentSite" 
+                                                  IsHitTestVisible="False" 
+                                                  Content="{TemplateBinding SelectionBoxItem}"
+                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                                  Margin="12,0"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Left"/>
+                                <Path x:Name="Arrow"
+                                      Width="10"
+                                      Height="6"
+                                      Fill="{DynamicResource AppTextSecondary}"
+                                      Stretch="Uniform"
+                                      Margin="0,0,12,0"
+                                      HorizontalAlignment="Right"
+                                      VerticalAlignment="Center"
+                                      Data="M 0 0 L 10 0 L 5 5 Z"/>
+                                <Popup x:Name="Popup" 
+                                       Placement="Bottom"
+                                       IsOpen="{TemplateBinding IsDropDownOpen}"
+                                       AllowsTransparency="True"
+                                       Focusable="False"
+                                       PopupAnimation="Slide">
+                                    <Grid x:Name="DropDown" 
+                                          SnapsToDevicePixels="True" 
+                                          MinWidth="{TemplateBinding ActualWidth}"
+                                          MaxHeight="200">
+                                        <Border x:Name="DropDownBorder"
+                                                Background="{DynamicResource AppCardBg}"
+                                                BorderBrush="{DynamicResource AppBorder}"
+                                                BorderThickness="1"
+                                                CornerRadius="10">
+                                            <ScrollViewer Margin="4">
+                                                <ItemsPresenter/>
+                                            </ScrollViewer>
+                                        </Border>
+                                    </Grid>
+                                </Popup>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="False">
+                                <Setter Property="MinHeight" TargetName="DropDownBorder" Value="95"/>
+                            </Trigger>
+                            <Trigger Property="IsGrouping" Value="True">
+                                <Setter Property="ScrollViewer.CanContentScroll" Value="False"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="PrimaryButtonStyle" TargetType="Button">
             <Setter Property="Height" Value="42"/>
             <Setter Property="Padding" Value="24,0"/>
@@ -93,7 +167,6 @@
     <Grid Margin="30">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -113,33 +186,8 @@
             </StackPanel>
         </Border>
 
-        <!-- Currency Settings Section -->
-        <Border Grid.Row="1" 
-                Style="{StaticResource PanelCardStyle}" 
-                Padding="24"
-                Margin="0,0,0,24">
-            <StackPanel>
-                <TextBlock Text="العملة الافتراضية" 
-                           FontSize="16" 
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,12"/>
-                
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="اختر العملة:" 
-                               VerticalAlignment="Center"
-                               Margin="0,0,12,0"/>
-                    <ComboBox x:Name="CmbCurrency" 
-                              Width="120"
-                              SelectionChanged="CmbCurrency_SelectionChanged">
-                        <ComboBoxItem Content="SYP"/>
-                        <ComboBoxItem Content="USD"/>
-                    </ComboBox>
-                </StackPanel>
-            </StackPanel>
-        </Border>
-
         <!-- Treatment Costs Section -->
-        <Border Grid.Row="2" 
+        <Border Grid.Row="1" 
                 Style="{StaticResource PanelCardStyle}" 
                 Padding="24">
             <Grid>
@@ -160,6 +208,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="100"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
@@ -175,8 +224,17 @@
                                  Tag="التكلفة"
                                  Margin="0,0,12,0"/>
 
+                        <ComboBox x:Name="CmbTreatmentCurrency" 
+                                  Grid.Column="2"
+                                  Width="90"
+                                  Style="{StaticResource ComboBoxStyle}"
+                                  Margin="0,0,12,0">
+                            <ComboBoxItem Content="SYP"/>
+                            <ComboBoxItem Content="USD"/>
+                        </ComboBox>
+
                         <Button x:Name="BtnAddTreatment" 
-                                Grid.Column="2"
+                                Grid.Column="3"
                                 Content="إضافة" 
                                 Style="{StaticResource PrimaryButtonStyle}"
                                 Width="100"
@@ -189,6 +247,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="100"/>
                         <ColumnDefinition Width="60"/>
                     </Grid.ColumnDefinitions>
 
@@ -202,6 +261,11 @@
                                Foreground="{DynamicResource AppTextSecondary}"
                                HorizontalAlignment="Center"/>
                     <TextBlock Grid.Column="2" 
+                               Text="العملة" 
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource AppTextSecondary}"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" 
                                Text="" 
                                FontWeight="SemiBold"/>
                 </Grid>
@@ -222,6 +286,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="60"/>
                                         </Grid.ColumnDefinitions>
 
@@ -234,7 +299,12 @@
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Center"/>
 
-                                        <Button Grid.Column="2"
+                                        <TextBlock Grid.Column="2" 
+                                                   Text="{Binding Currency}"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"/>
+
+                                        <Button Grid.Column="3"
                                                 Style="{StaticResource DeleteButtonStyle}"
                                                 Tag="{Binding Id}"
                                                 Click="BtnDeleteTreatment_Click"/>

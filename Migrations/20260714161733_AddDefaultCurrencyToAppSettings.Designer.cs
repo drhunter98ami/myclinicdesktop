@@ -11,7 +11,7 @@ using MyClinic;
 namespace MyClinic.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260713175538_AddDefaultCurrencyToAppSettings")]
+    [Migration("20260714161733_AddDefaultCurrencyToAppSettings")]
     partial class AddDefaultCurrencyToAppSettings
     {
         /// <inheritdoc />
