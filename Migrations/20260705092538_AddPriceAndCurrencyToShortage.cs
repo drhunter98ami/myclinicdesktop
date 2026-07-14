@@ -14,14 +14,14 @@ namespace MyClinic.Migrations
                 name: "Currency",
                 table: "Shortages",
                 type: "TEXT",
-                nullable: false,
+                nullable: true,
                 defaultValue: "");
 
             migrationBuilder.AddColumn<decimal>(
                 name: "Price",
                 table: "Shortages",
                 type: "TEXT",
-                nullable: false,
+                nullable: true,
                 defaultValue: 0m);
         }
 

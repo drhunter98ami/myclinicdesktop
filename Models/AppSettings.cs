@@ -10,6 +10,10 @@ namespace MyClinic.Models
         [Required]
         public decimal UsdToSypRate { get; set; } = 15000; // Default conversion rate
 
+        [Required]
+        [MaxLength(3)]
+        public string DefaultCurrency { get; set; } = "SYP"; // Default currency: USD or SYP
+
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
     }
 }

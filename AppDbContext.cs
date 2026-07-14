@@ -20,6 +20,7 @@ namespace MyClinic
         public DbSet<Shortage> Shortages { get; set; }
         public DbSet<AppSettings> AppSettings { get; set; }
         public DbSet<LabName> LabNames { get; set; }
+        public DbSet<TreatmentCost> TreatmentCosts { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -43,6 +43,7 @@ namespace MyClinic.Models
         public string? TreatmentPlanNotes { get; set; }
         public string? FinalTreatment { get; set; }
         public string? AttachedImagePathsJson { get; set; }
+        public string? SelectedTreatmentsJson { get; set; }
 
         // ── Financials ────────────────────────────────────────────────
         public double CurrentCost { get; set; }

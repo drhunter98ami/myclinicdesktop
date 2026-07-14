@@ -270,6 +270,73 @@
                     
                     <Border Style="{StaticResource Card}">
                         <StackPanel>
+                            <TextBlock Text="اختيار العلاجات" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource AppTextPrimary}" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+                            
+                            <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="TreatmentItemsControl">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource AppInputBg}" 
+                                                    BorderBrush="{DynamicResource AppBorder}" 
+                                                    BorderThickness="1" 
+                                                    CornerRadius="6" 
+                                                    Padding="12,8"
+                                                    Margin="0,0,0,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="80"/>
+                                                        <ColumnDefinition Width="60"/>
+                                                        <ColumnDefinition Width="80"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <CheckBox Grid.Column="0" 
+                                                              x:Name="ChkTreatment"
+                                                              IsChecked="{Binding IsSelected}"
+                                                              Checked="TreatmentCheckBox_Changed" 
+                                                              Unchecked="TreatmentCheckBox_Changed"
+                                                              Margin="0,0,12,0"
+                                                              VerticalAlignment="Center"/>
+
+                                                    <TextBlock Grid.Column="1" 
+                                                               Text="{Binding TreatmentName}" 
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource AppTextPrimary}"/>
+
+                                                    <TextBlock Grid.Column="2" 
+                                                               Text="{Binding Cost, StringFormat={}{0:N0}}" 
+                                                               VerticalAlignment="Center"
+                                                               HorizontalAlignment="Center"
+                                                               Foreground="{DynamicResource AppTextSecondary}"/>
+
+                                                    <TextBlock Grid.Column="3" 
+                                                               Text="×" 
+                                                               VerticalAlignment="Center"
+                                                               HorizontalAlignment="Center"
+                                                               Foreground="{DynamicResource AppTextSecondary}"
+                                                               Margin="5,0"/>
+
+                                                    <TextBox Grid.Column="4" 
+                                                                     x:Name="TxtQuantity"
+                                                                     Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" 
+                                                                     TextAlignment="Center"
+                                                                     Style="{StaticResource ModernTextBox}"
+                                                                     Height="32"
+                                                                     TextChanged="TreatmentQuantity_TextChanged"
+                                                                     IsEnabled="{Binding IsSelected}"
+                                                                     VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -296,6 +363,20 @@
                                              PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="0" Margin="10,0">
+                                    <TextBlock Text="العملة" Style="{StaticResource FormLabel}" HorizontalAlignment="Center"/>
+                                    <ComboBox x:Name="CmbCurrency" Style="{StaticResource ModernComboBox}" SelectedIndex="0">
+                                        <ComboBoxItem Content="SYP"/>
+                                        <ComboBoxItem Content="USD"/>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Margin="0,15,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="1" Margin="10,0">
                                     <TextBlock Text="متبقي الزيارة" Style="{StaticResource FormLabel}" HorizontalAlignment="Center"/>
                                     <TextBox x:Name="TxtRemainingAmount" Text="0" TextAlignment="Center" Style="{StaticResource ModernTextBox}" Background="{DynamicResource AppInputBg}" IsReadOnly="True" Foreground="#16A34A" FontWeight="Bold"/>
                                 </StackPanel>

@@ -16,6 +16,7 @@ namespace MyClinic
         private FinancialRecordsView? _financialRecordsView;
         private ShortagesView? _shortagesView; // تعريف الواجهة الجديدة
         private LabView? _labView;
+        private SettingsView? _settingsView;
         
         // متغيرات المزامنة التلقائية والساعة
         private DispatcherTimer _clockTimer;
@@ -286,6 +287,9 @@ namespace MyClinic
         // زر المخبر الجديد
         private void BtnLab_Click(object sender, RoutedEventArgs e) => ShowLab();
 
+        // زر الإعدادات الجديد
+        private void BtnSettings_Click(object sender, RoutedEventArgs e) => ShowSettings();
+
         private async void BtnSyncDrive_Click(object sender, RoutedEventArgs e)
         {
             BtnSyncDrive.IsEnabled = false;
@@ -394,6 +398,14 @@ namespace MyClinic
             SetActiveNavigation(BtnLab);
         }
 
+        // إظهار واجهة الإعدادات الجديدة
+        public void ShowSettings()
+        {
+            _settingsView ??= new SettingsView();
+            MainContent.Content = _settingsView;
+            SetActiveNavigation(BtnSettings);
+        }
+
         public void InvalidatePatientRecords() => _patientRecordsView?.RequestRefresh();
         public void InvalidateFinancialRecords() => _financialRecordsView?.RequestRefresh();
 
@@ -404,6 +416,7 @@ namespace MyClinic
             BtnFinancials.Style = (Style)FindResource("SidebarButton");
             BtnShortages.Style = (Style)FindResource("SidebarButton"); // إضافة الزر الجديد للتنقل
             BtnLab.Style = (Style)FindResource("SidebarButton"); // إضافة زر المخبر للتنقل
+            BtnSettings.Style = (Style)FindResource("SidebarButton"); // إضافة زر الإعدادات للتنقل
 
             activeButton.Style = (Style)FindResource("SidebarActiveButton");
         }

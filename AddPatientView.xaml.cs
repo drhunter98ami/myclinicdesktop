@@ -28,6 +28,7 @@ namespace MyClinic
         private readonly List<string> _selectedImagePaths = new();
         private readonly ObservableCollection<PatientLookupSuggestion> _patientSuggestions = new();
         private readonly ObservableCollection<VisitHistoryItem> _previousVisits = new();
+        private readonly ObservableCollection<TreatmentSelectionItem> _treatmentSelectionItems = new();
         
         // Dynamic Medicine Autofill Collections
         private readonly ObservableCollection<string> _recentMedicines = new();
@@ -48,14 +49,40 @@ namespace MyClinic
             ItemsPatientSuggestions.ItemsSource = _patientSuggestions;
             ItemsPreviousVisits.ItemsSource = _previousVisits;
             ItemsRecentMedicines.ItemsSource = _recentMedicines; // Bind Recent drugs
+            TreatmentItemsControl.ItemsSource = _treatmentSelectionItems;
 
             LoadMedicines(); // Loads local JSON record of previously entered medicines
+            LoadTreatments(); // Load treatments from database
+            LoadCurrencySettings(); // Load default currency from settings
 
             UpdateRemainingVisitAmount();
             UpdateFemaleDetailsVisibility();
             UpdatePregnancyMonthVisibility();
             RefreshPrescriptionList();
             RefreshSelectedImagesList();
+        }
+
+        private void LoadCurrencySettings()
+        {
+            try
+            {
+                using var db = new AppDbContext();
+                var settings = db.AppSettings.FirstOrDefault();
+                if (settings != null)
+                {
+                    var currencyItem = CmbCurrency.Items
+                        .OfType<ComboBoxItem>()
+                        .FirstOrDefault(item => item.Content?.ToString() == settings.DefaultCurrency);
+                    if (currencyItem != null)
+                    {
+                        CmbCurrency.SelectedItem = currencyItem;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // If loading fails, keep default selection
+            }
         }
 
         #region Medicine Persistence & Autofill Logic
@@ -155,6 +182,83 @@ namespace MyClinic
                 TxtPrescriptionMedicine.CaretIndex = medicine.Length;
                 PopupMedicineSuggestions.IsOpen = false;
             }
+        }
+
+        #endregion
+
+        #region Treatment Selection Logic
+
+        private async void LoadTreatments()
+        {
+            try
+            {
+                using var db = new AppDbContext();
+                var treatments = await db.TreatmentCosts
+                    .OrderBy(t => t.TreatmentName)
+                    .ToListAsync();
+
+                _treatmentSelectionItems.Clear();
+                foreach (var treatment in treatments)
+                {
+                    _treatmentSelectionItems.Add(new TreatmentSelectionItem
+                    {
+                        TreatmentId = treatment.Id,
+                        TreatmentName = treatment.TreatmentName,
+                        Cost = treatment.Cost,
+                        IsSelected = false,
+                        Quantity = 1
+                    });
+                }
+            }
+            catch (Exception)
+            {
+                // If treatments fail to load, continue without them
+            }
+        }
+
+        private void TreatmentCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            CalculateTotalCost();
+        }
+
+        private void TreatmentQuantity_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CalculateTotalCost();
+        }
+
+        private void CalculateTotalCost()
+        {
+            decimal total = 0;
+            foreach (var item in _treatmentSelectionItems)
+            {
+                if (item.IsSelected)
+                {
+                    int quantity = item.Quantity > 0 ? item.Quantity : 1;
+                    total += item.Cost * quantity;
+                }
+            }
+
+            TxtCurrentCost.Text = total.ToString("0.##", CultureInfo.CurrentCulture);
+            UpdateRemainingVisitAmount();
+        }
+
+        private List<SelectedTreatment> GetSelectedTreatments()
+        {
+            var selected = new List<SelectedTreatment>();
+            foreach (var item in _treatmentSelectionItems)
+            {
+                if (item.IsSelected)
+                {
+                    selected.Add(new SelectedTreatment
+                    {
+                        TreatmentId = item.TreatmentId,
+                        TreatmentName = item.TreatmentName,
+                        Cost = item.Cost,
+                        Quantity = item.Quantity > 0 ? item.Quantity : 1
+                    });
+                }
+            }
+            return selected;
         }
 
         #endregion
@@ -684,6 +788,27 @@ namespace MyClinic
                 return;
             }
 
+            // Convert USD to SYP if needed
+            string selectedCurrency = CmbCurrency.SelectedItem is ComboBoxItem item ? item.Content?.ToString() ?? "SYP" : "SYP";
+            if (selectedCurrency == "USD")
+            {
+                try
+                {
+                    using var db = new AppDbContext();
+                    var settings = db.AppSettings.FirstOrDefault();
+                    if (settings != null)
+                    {
+                        decimal exchangeRate = settings.UsdToSypRate;
+                        currentCost = currentCost * exchangeRate;
+                        todayPaid = todayPaid * exchangeRate;
+                    }
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("خطأ في تحويل العملة. سيتم الحفظ بالقيمة المدخلة.", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+
             decimal remainingAmount = Math.Max(0, currentCost - todayPaid);
 
             bool isFemale = CmbGender.SelectedIndex == 1;
@@ -744,6 +869,7 @@ namespace MyClinic
                     Diagnosis = NullIfWhiteSpace(TxtDiagnosis.Text),
                     PrescriptionJson = _prescriptionItems.Count > 0 ? JsonSerializer.Serialize(_prescriptionItems) : null,
                     TreatmentPlanNotes = NullIfWhiteSpace(TxtTreatmentPlanNotes.Text),
+                    SelectedTreatmentsJson = GetSelectedTreatments().Count > 0 ? JsonSerializer.Serialize(GetSelectedTreatments()) : null,
                     CurrentCost = (double)currentCost,
                     TodayPaid = (double)todayPaid,
                     RemainingAmount = (double)remainingAmount,

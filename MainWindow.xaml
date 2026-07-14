@@ -119,6 +119,9 @@
                     <!-- التبويب الجديد: المخبر -->
                     <Button Name="BtnLab" Content="المخبر" Style="{StaticResource SidebarButton}" Click="BtnLab_Click"/>
                     
+                    <!-- التبويب الجديد: الإعدادات -->
+                    <Button Name="BtnSettings" Content="الإعدادات" Style="{StaticResource SidebarButton}" Click="BtnSettings_Click"/>
+                    
                     <Border Margin="15,20,15,5" Height="1" Background="#334155"/>
                     <Button Name="BtnSyncDrive" Content="مزامنة مع Google Drive" Style="{StaticResource SidebarButton}" Click="BtnSyncDrive_Click"/>
                     <Button Name="BtnRestoreDrive" Content="استعادة البيانات" Style="{StaticResource SidebarButton}" Click="BtnRestoreDrive_Click"/>
