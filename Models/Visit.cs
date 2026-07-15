@@ -50,6 +50,12 @@ namespace MyClinic.Models
         public double TodayPaid { get; set; }
         public double RemainingAmount { get; set; }
 
+        /// <summary>
+        /// The USD→SYP exchange rate in effect when this visit was saved.
+        /// Snapshotted so later rate changes do not retroactively alter historic costs.
+        /// </summary>
+        public double UsdToSypRateSnapshot { get; set; } = 15000;
+
         // ── Dental Chart ──────────────────────────────────────────────
         /// <summary>"Adult" or "Child"</summary>
         public string ChartMode { get; set; } = "Adult";

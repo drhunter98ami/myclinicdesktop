@@ -829,6 +829,13 @@ namespace MyClinic
                 patient.Allergies = NullIfWhiteSpace(TxtAllergies.Text);
                 patient.ChronicDiseases = NullIfWhiteSpace(TxtChronicDiseases.Text);
 
+                // Snapshot the current USD→SYP rate so historic payment details
+                // are never retroactively affected by future rate changes.
+                double usdToSypRateSnapshot = 15000;
+                var appSettings = db.AppSettings.FirstOrDefault();
+                if (appSettings != null)
+                    usdToSypRateSnapshot = (double)appSettings.UsdToSypRate;
+
                 Visit visit = new()
                 {
                     Patient = patient,
@@ -850,6 +857,7 @@ namespace MyClinic
                     CurrentCost = (double)currentCost,
                     TodayPaid = (double)todayPaid,
                     RemainingAmount = (double)remainingAmount,
+                    UsdToSypRateSnapshot = usdToSypRateSnapshot,
                     ChartMode = AdultChartControl.Visibility == Visibility.Visible ? "Adult" : "Child",
                     ToothRecords = GetSelectedToothIds()
                         .Select(toothId => new ToothRecord

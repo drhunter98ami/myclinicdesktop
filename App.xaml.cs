@@ -114,6 +114,8 @@ public partial class App : Application
         EnsureColumnExists(context, "Visits", "TodayPaid", "REAL NOT NULL DEFAULT 0");
         EnsureColumnExists(context, "Visits", "RemainingAmount", "REAL NOT NULL DEFAULT 0");
         EnsureColumnExists(context, "Visits", "SelectedTreatmentsJson", "TEXT NULL");
+        EnsureColumnExists(context, "Visits", "UsdToSypRateSnapshot", "REAL NOT NULL DEFAULT 15000");
+        EnsureColumnExists(context, "AppSettings", "DefaultCurrency", "TEXT NOT NULL DEFAULT 'SYP'");
 
         context.Database.ExecuteSqlRaw(
             @"CREATE TABLE IF NOT EXISTS Shortages (

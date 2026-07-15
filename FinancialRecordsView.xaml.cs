@@ -139,7 +139,8 @@ namespace MyClinic
                         CurrentCost = visit.CurrentCost,
                         TodayPaid = visit.TodayPaid,
                         RemainingAmount = visit.RemainingAmount,
-                        SelectedTreatmentsJson = visit.SelectedTreatmentsJson
+                        SelectedTreatmentsJson = visit.SelectedTreatmentsJson,
+                        UsdToSypRateSnapshot = visit.UsdToSypRateSnapshot
                     }).ToList();
 
                     _allVisits.AddRange(visits);
@@ -443,28 +444,34 @@ namespace MyClinic
                 .GroupBy(v => v.PatientId)
                 .ToDictionary(g => g.Key, g => g.OrderBy(v => v.VisitDate).ToList());
 
-            // Build the flat queue of (name, totalCost, currency) for one patient.
-            static List<(string Name, double TotalCost, string Currency)> BuildTreatmentQueue(
+            // Build the flat queue of (name, totalCostSyp) for one patient.
+            // USD costs are converted to SYP using the rate snapshotted at the time
+            // each visit was saved, so later rate changes never alter historic values.
+            static List<(string Name, double TotalCostSyp)> BuildTreatmentQueue(
                 List<VisitFinanceSnapshot> patientVisits)
             {
-                var queue = new List<(string, double, string)>();
+                var queue = new List<(string, double)>();
                 foreach (var pv in patientVisits)
                 {
                     if (string.IsNullOrWhiteSpace(pv.SelectedTreatmentsJson)) continue;
                     foreach (var t in ParseSelectedTreatments(pv.SelectedTreatmentsJson))
                     {
-                        double cost = (double)t.Cost * Math.Max(1, t.Quantity);
-                        if (cost > 0.009)
-                            queue.Add((t.TreatmentName, cost, t.Currency));
+                        double costSyp = (double)t.Cost;
+                        if (t.Currency == "USD")
+                            costSyp *= pv.UsdToSypRateSnapshot;
+                        costSyp *= Math.Max(1, t.Quantity);
+                        if (costSyp > 0.009)
+                            queue.Add((t.TreatmentName, costSyp));
                     }
                 }
                 return queue;
             }
 
-            // Given a treatment queue and how much the patient paid before & during
-            // this visit, return the treatment lines to display in the details overlay.
+            // Given a treatment queue (all costs already in SYP) and how much the
+            // patient paid before & during this visit, return the treatment lines
+            // to display in the details overlay.
             static IReadOnlyList<AllocatedTreatmentLine> AllocatePayment(
-                List<(string Name, double TotalCost, string Currency)> queue,
+                List<(string Name, double TotalCostSyp)> queue,
                 double cumulativePaidBefore,
                 double thisPaid)
             {
@@ -475,7 +482,7 @@ namespace MyClinic
                 var result = new List<AllocatedTreatmentLine>();
                 double runningCost = 0;
 
-                foreach (var (name, totalCost, currency) in queue)
+                foreach (var (name, totalCost) in queue)
                 {
                     double tStart = runningCost;
                     double tEnd   = runningCost + totalCost;
@@ -490,7 +497,7 @@ namespace MyClinic
                         result.Add(new AllocatedTreatmentLine
                         {
                             TreatmentName   = name,
-                            Currency        = currency,
+                            Currency        = "ل.س",
                             AllocatedAmount = allocated,
                             TreatmentTotal  = totalCost
                         });
@@ -514,14 +521,22 @@ namespace MyClinic
                     else if (!hasPaid)
                     {
                         // Billing-only row (first visit, no payment yet):
-                        // show all treatments added in THIS visit at their full cost.
+                        // show all treatments added in THIS visit converted to SYP at
+                        // the rate that was in effect when the visit was saved.
                         allocations = ParseSelectedTreatments(visit.SelectedTreatmentsJson)
-                            .Select(t => new AllocatedTreatmentLine
+                            .Select(t =>
                             {
-                                TreatmentName   = t.TreatmentName,
-                                Currency        = t.Currency,
-                                AllocatedAmount = (double)t.Cost * Math.Max(1, t.Quantity),
-                                TreatmentTotal  = (double)t.Cost * Math.Max(1, t.Quantity)
+                                double costSyp = (double)t.Cost;
+                                if (t.Currency == "USD")
+                                    costSyp *= visit.UsdToSypRateSnapshot;
+                                costSyp *= Math.Max(1, t.Quantity);
+                                return new AllocatedTreatmentLine
+                                {
+                                    TreatmentName   = t.TreatmentName,
+                                    Currency        = "ل.س",
+                                    AllocatedAmount = costSyp,
+                                    TreatmentTotal  = costSyp
+                                };
                             })
                             .Where(a => a.TreatmentTotal > 0.009)
                             .ToList();
@@ -1028,6 +1043,12 @@ namespace MyClinic
             public double TodayPaid { get; init; }
             public double RemainingAmount { get; init; }
             public string? SelectedTreatmentsJson { get; init; }
+            /// <summary>
+            /// USD→SYP rate snapshotted at the moment the visit was saved.
+            /// Used so the details overlay always shows the historic converted cost,
+            /// not the current rate.
+            /// </summary>
+            public double UsdToSypRateSnapshot { get; init; } = 15000;
         }
 
         private sealed class ExpenseSnapshot

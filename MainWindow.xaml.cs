@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -14,9 +14,10 @@ namespace MyClinic
         private DashboardView? _dashboardView;
         private PatientRecordsView? _patientRecordsView;
         private FinancialRecordsView? _financialRecordsView;
-        private ShortagesView? _shortagesView; // تعريف الواجهة الجديدة
+        private ShortagesView? _shortagesView;
         private LabView? _labView;
         private SettingsView? _settingsView;
+        private StatisticsView? _statisticsView;
         
         // متغيرات المزامنة التلقائية والساعة
         private DispatcherTimer _clockTimer;
@@ -290,6 +291,9 @@ namespace MyClinic
         // زر الإعدادات الجديد
         private void BtnSettings_Click(object sender, RoutedEventArgs e) => ShowSettings();
 
+        // زر الإحصائيات الجديد
+        private void BtnStatistics_Click(object sender, RoutedEventArgs e) => ShowStatistics();
+
         private async void BtnSyncDrive_Click(object sender, RoutedEventArgs e)
         {
             BtnSyncDrive.IsEnabled = false;
@@ -406,6 +410,14 @@ namespace MyClinic
             SetActiveNavigation(BtnSettings);
         }
 
+        // إظهار واجهة الإحصائيات الجديدة
+        public void ShowStatistics()
+        {
+            _statisticsView ??= new StatisticsView();
+            MainContent.Content = _statisticsView;
+            SetActiveNavigation(BtnStatistics);
+        }
+
         public void InvalidatePatientRecords() => _patientRecordsView?.RequestRefresh();
         public void InvalidateFinancialRecords() => _financialRecordsView?.RequestRefresh();
 
@@ -414,9 +426,10 @@ namespace MyClinic
             BtnDashboard.Style = (Style)FindResource("SidebarButton");
             BtnPatients.Style = (Style)FindResource("SidebarButton");
             BtnFinancials.Style = (Style)FindResource("SidebarButton");
-            BtnShortages.Style = (Style)FindResource("SidebarButton"); // إضافة الزر الجديد للتنقل
-            BtnLab.Style = (Style)FindResource("SidebarButton"); // إضافة زر المخبر للتنقل
-            BtnSettings.Style = (Style)FindResource("SidebarButton"); // إضافة زر الإعدادات للتنقل
+            BtnShortages.Style = (Style)FindResource("SidebarButton");
+            BtnLab.Style = (Style)FindResource("SidebarButton");
+            BtnSettings.Style = (Style)FindResource("SidebarButton");
+            BtnStatistics.Style = (Style)FindResource("SidebarButton");
 
             activeButton.Style = (Style)FindResource("SidebarActiveButton");
         }

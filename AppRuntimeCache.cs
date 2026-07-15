@@ -56,6 +56,7 @@ namespace MyClinic
                 CurrentCost = source.CurrentCost,
                 TodayPaid = source.TodayPaid,
                 RemainingAmount = source.RemainingAmount,
+                UsdToSypRateSnapshot = source.UsdToSypRateSnapshot,
                 ChartMode = source.ChartMode,
                 ToothRecords = source.ToothRecords?
                     .Select(record => new ToothRecord

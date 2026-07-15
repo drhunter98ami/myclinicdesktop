@@ -150,6 +150,9 @@
                         <!-- التبويب الجديد: المخبر -->
                         <Button Name="BtnLab" Content="المخبر" Style="{StaticResource SidebarButton}" Click="BtnLab_Click"/>
                         
+                        <!-- التبويب الجديد: الإحصائيات -->
+                        <Button Name="BtnStatistics" Content="الإحصائيات" Style="{StaticResource SidebarButton}" Click="BtnStatistics_Click"/>
+                        
                         <!-- التبويب الجديد: الإعدادات -->
                         <Button Name="BtnSettings" Content="الإعدادات" Style="{StaticResource SidebarButton}" Click="BtnSettings_Click"/>
                         
