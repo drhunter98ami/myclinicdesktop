@@ -126,6 +126,7 @@
                 <Button x:Name="BtnTabIncome"
                         Content="الدخل"
                         Style="{StaticResource MainTabBtnActive}"
+                        Margin="0,0,20,0"
                         Click="BtnTabIncome_Click"/>
                 <Button x:Name="BtnTabExpenses"
                         Content="المصاريف"
@@ -152,16 +153,16 @@
 
                 <!-- Subtabs -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="BtnDaily"   Content="يومي"   Style="{StaticResource SubTabBtnActive}" Margin="0,0,6,0" Click="BtnDaily_Click"/>
-                    <Button x:Name="BtnMonthly" Content="شهري"   Style="{StaticResource SubTabBtn}"       Margin="0,0,6,0" Click="BtnMonthly_Click"/>
-                    <Button x:Name="BtnYearly"  Content="سنوي"   Style="{StaticResource SubTabBtn}"                        Click="BtnYearly_Click"/>
+                    <Button x:Name="BtnDaily"   Content="يومي"   Style="{StaticResource SubTabBtnActive}" Margin="0,0,12,0" Click="BtnDaily_Click"/>
+                    <Button x:Name="BtnMonthly" Content="شهري"   Style="{StaticResource SubTabBtn}"       Margin="0,0,12,0" Click="BtnMonthly_Click"/>
+                    <Button x:Name="BtnYearly"  Content="سنوي"   Style="{StaticResource SubTabBtn}"                         Click="BtnYearly_Click"/>
                 </StackPanel>
 
                 <!-- Date navigation -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="BtnNow" Content="الآن" Style="{StaticResource NowBtn}" Margin="0,0,10,0" Click="BtnNow_Click"/>
                     <!-- forward (toward future) -->
-                    <Button Content="&#8250;" Style="{StaticResource NavBtn}" Margin="0,0,6,0" Click="BtnNext_Click"/>
+                    <Button Content="&#8249;" Style="{StaticResource NavBtn}" Margin="0,0,6,0" Click="BtnNext_Click"/>
                     <TextBlock x:Name="TblDateLabel"
                                Text="..."
                                FontSize="14"
@@ -172,7 +173,7 @@
                                TextAlignment="Center"
                                Margin="4,0"/>
                     <!-- back (toward past) -->
-                    <Button Content="&#8249;" Style="{StaticResource NavBtn}" Margin="6,0,0,0" Click="BtnPrev_Click"/>
+                    <Button Content="&#8250;" Style="{StaticResource NavBtn}" Margin="6,0,0,0" Click="BtnPrev_Click"/>
                 </StackPanel>
             </Grid>
         </Border>
