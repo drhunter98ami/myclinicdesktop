@@ -433,56 +433,71 @@ namespace MyClinic
                 .OrderByDescending(expense => expense.ExpenseDate)
                 .ToList();
 
-            // Walk each patient's visits chronologically to track which treatment batches
-            // remain unpaid as of each visit. This lets payment-only visits show ALL
-            // outstanding treatments (not just the most recent batch), and ensures
-            // details differ per visit when new treatments/costs are added.
-            Dictionary<int, IReadOnlyList<SelectedTreatment>> treatmentsByVisitId = new();
-
-            var patientChronologicalVisits = _allVisits
-                .GroupBy(v => v.PatientId)
-                .ToDictionary(g => g.Key, g => g.OrderBy(v => v.VisitDate).ThenBy(v => v.VisitId).ToList());
-
-            foreach (var (_, visits) in patientChronologicalVisits)
-            {
-                double runningBalance = 0;
-                List<IReadOnlyList<SelectedTreatment>> activeBatches = new();
-
-                foreach (var visit in visits)
-                {
-                    // If this visit introduces new treatments, register them as a new batch
-                    if (!string.IsNullOrWhiteSpace(visit.SelectedTreatmentsJson))
-                    {
-                        var parsed = ParseSelectedTreatments(visit.SelectedTreatmentsJson);
-                        if (parsed.Count > 0)
-                            activeBatches.Add(parsed);
-                    }
-
-                    // Determine which treatments to display for this visit:
-                    //  - Visit with new treatments → show its own treatments
-                    //  - Payment-only visit → show ALL currently unpaid treatment batches
-                    if (!string.IsNullOrWhiteSpace(visit.SelectedTreatmentsJson))
-                    {
-                        treatmentsByVisitId[visit.VisitId] = ParseSelectedTreatments(visit.SelectedTreatmentsJson);
-                    }
-                    else
-                    {
-                        treatmentsByVisitId[visit.VisitId] = activeBatches
-                            .SelectMany(b => b)
-                            .ToList();
-                    }
-
-                    // Update running balance (CurrentCost can be negative for forgiveness)
-                    runningBalance += visit.CurrentCost - visit.TodayPaid;
-
-                    // When fully paid off, all active batches are settled
-                    if (runningBalance <= 0.01)
-                        activeBatches.Clear();
-                }
-            }
-
             static Brush MakeBrush(string hex) =>
                 new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+
+            // ── Payment-allocation engine ──────────────────────────────────────────
+            // For each patient, build a flat treatment queue (oldest visit → newest)
+            // so payments can be applied FIFO across all treatments ever added.
+            Dictionary<int, List<VisitFinanceSnapshot>> patientAllVisits = _allVisits
+                .GroupBy(v => v.PatientId)
+                .ToDictionary(g => g.Key, g => g.OrderBy(v => v.VisitDate).ToList());
+
+            // Build the flat queue of (name, totalCost, currency) for one patient.
+            static List<(string Name, double TotalCost, string Currency)> BuildTreatmentQueue(
+                List<VisitFinanceSnapshot> patientVisits)
+            {
+                var queue = new List<(string, double, string)>();
+                foreach (var pv in patientVisits)
+                {
+                    if (string.IsNullOrWhiteSpace(pv.SelectedTreatmentsJson)) continue;
+                    foreach (var t in ParseSelectedTreatments(pv.SelectedTreatmentsJson))
+                    {
+                        double cost = t.Cost * Math.Max(1, t.Quantity);
+                        if (cost > 0.009)
+                            queue.Add((t.TreatmentName, cost, t.Currency));
+                    }
+                }
+                return queue;
+            }
+
+            // Given a treatment queue and how much the patient paid before & during
+            // this visit, return the treatment lines to display in the details overlay.
+            static IReadOnlyList<AllocatedTreatmentLine> AllocatePayment(
+                List<(string Name, double TotalCost, string Currency)> queue,
+                double cumulativePaidBefore,
+                double thisPaid)
+            {
+                if (thisPaid <= 0.009 || queue.Count == 0)
+                    return Array.Empty<AllocatedTreatmentLine>();
+
+                double cumulativePaidAfter = cumulativePaidBefore + thisPaid;
+                var result = new List<AllocatedTreatmentLine>();
+                double runningCost = 0;
+
+                foreach (var (name, totalCost, currency) in queue)
+                {
+                    double tStart = runningCost;
+                    double tEnd   = runningCost + totalCost;
+                    runningCost   = tEnd;
+
+                    if (tEnd   <= cumulativePaidBefore) continue;  // already fully paid
+                    if (tStart >= cumulativePaidAfter)  break;     // not yet being paid
+
+                    double allocated = Math.Min(tEnd, cumulativePaidAfter)
+                                     - Math.Max(tStart, cumulativePaidBefore);
+                    if (allocated > 0.009)
+                        result.Add(new AllocatedTreatmentLine
+                        {
+                            TreatmentName   = name,
+                            Currency        = currency,
+                            AllocatedAmount = allocated,
+                            TreatmentTotal  = totalCost
+                        });
+                }
+                return result;
+            }
+            // ── End payment-allocation engine ──────────────────────────────────────
 
             List<IncomeRowModel> incomeRows = filteredVisits
                 .Where(visit => visit.CurrentCost != 0 || visit.TodayPaid > 0)
@@ -490,8 +505,37 @@ namespace MyClinic
                 {
                     bool hasPaid = visit.TodayPaid > 0;
 
-                    treatmentsByVisitId.TryGetValue(visit.VisitId, out IReadOnlyList<SelectedTreatment>? treatments);
-                    treatments ??= Array.Empty<SelectedTreatment>();
+                    IReadOnlyList<AllocatedTreatmentLine> allocations;
+
+                    if (!patientAllVisits.TryGetValue(visit.PatientId, out List<VisitFinanceSnapshot>? pVisits))
+                    {
+                        allocations = Array.Empty<AllocatedTreatmentLine>();
+                    }
+                    else if (!hasPaid)
+                    {
+                        // Billing-only row (first visit, no payment yet):
+                        // show all treatments added in THIS visit at their full cost.
+                        allocations = ParseSelectedTreatments(visit.SelectedTreatmentsJson)
+                            .Select(t => new AllocatedTreatmentLine
+                            {
+                                TreatmentName   = t.TreatmentName,
+                                Currency        = t.Currency,
+                                AllocatedAmount = t.Cost * Math.Max(1, t.Quantity),
+                                TreatmentTotal  = t.Cost * Math.Max(1, t.Quantity)
+                            })
+                            .Where(a => a.TreatmentTotal > 0.009)
+                            .ToList();
+                    }
+                    else
+                    {
+                        // Payment visit: allocate this payment against the patient's
+                        // cumulative treatment queue (FIFO across all visits).
+                        var queue = BuildTreatmentQueue(pVisits);
+                        double cumulativePaidBefore = pVisits
+                            .Where(v => v.VisitDate < visit.VisitDate)
+                            .Sum(v => v.TodayPaid);
+                        allocations = AllocatePayment(queue, cumulativePaidBefore, visit.TodayPaid);
+                    }
 
                     return new IncomeRowModel
                     {
@@ -505,9 +549,9 @@ namespace MyClinic
                             ? "+" + FormatMoneyCompact(visit.TodayPaid)
                             : FormatMoneyCompact(visit.CurrentCost),
                         PaidAmountBrush = hasPaid
-                            ? MakeBrush("#10B981")   // green  – payment received
-                            : MakeBrush("#F59E0B"),  // amber  – billed, not yet paid
-                        SelectedTreatments = treatments
+                            ? MakeBrush("#10B981")   // green – payment received
+                            : MakeBrush("#F59E0B"),  // amber – billed, not yet paid
+                        AllocatedTreatments = allocations
                     };
                 })
                 .ToList();
@@ -914,9 +958,9 @@ namespace MyClinic
             TxtIncomeTreatmentsPatient.Text = row.PatientName;
             TxtIncomeTreatmentsDate.Text = $"{row.DateText}  {row.TimeText}";
 
-            if (row.HasSelectedTreatments)
+            if (row.HasAllocatedTreatments)
             {
-                IncomeTreatmentsItemsControl.ItemsSource = row.SelectedTreatments;
+                IncomeTreatmentsItemsControl.ItemsSource = row.AllocatedTreatments;
                 EmptyIncomeTreatmentsText.Visibility = Visibility.Collapsed;
                 IncomeTreatmentsItemsControl.Visibility = Visibility.Visible;
             }
@@ -993,6 +1037,26 @@ namespace MyClinic
             public double Amount { get; init; }
         }
 
+        /// <summary>
+        /// One line in the payment-details overlay showing how much of a treatment
+        /// was covered by a specific visit's payment.
+        /// </summary>
+        public sealed class AllocatedTreatmentLine
+        {
+            public string TreatmentName   { get; init; } = string.Empty;
+            public string Currency        { get; init; } = string.Empty;
+            public double AllocatedAmount { get; init; }   // amount this payment covers for this treatment
+            public double TreatmentTotal  { get; init; }   // full cost of the treatment
+
+            /// <summary>
+            /// "50,000 / 200,000 ل.س" when partial; "200,000 ل.س" when fully covered.
+            /// </summary>
+            public string CostText =>
+                AllocatedAmount < TreatmentTotal - 0.009
+                    ? $"{AllocatedAmount:0.##} / {TreatmentTotal:0.##} {Currency}"
+                    : $"{TreatmentTotal:0.##} {Currency}";
+        }
+
         public sealed class IncomeRowModel
         {
             public int VisitId { get; init; }
@@ -1003,8 +1067,8 @@ namespace MyClinic
             public string PaidAmountText { get; init; } = string.Empty;
             public Brush PaidAmountBrush { get; init; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981"));
             public double RawAmount { get; init; }
-            public IReadOnlyList<SelectedTreatment> SelectedTreatments { get; init; } = Array.Empty<SelectedTreatment>();
-            public bool HasSelectedTreatments => SelectedTreatments.Count > 0;
+            public IReadOnlyList<AllocatedTreatmentLine> AllocatedTreatments { get; init; } = Array.Empty<AllocatedTreatmentLine>();
+            public bool HasAllocatedTreatments => AllocatedTreatments.Count > 0;
         }
 
         public sealed class ExpenseRowModel

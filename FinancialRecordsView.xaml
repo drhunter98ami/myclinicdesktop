@@ -749,12 +749,10 @@
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="80"/>
-                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="200"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="2" Text="العلاج" Style="{StaticResource TableHeaderTextStyle}" HorizontalAlignment="Right"/>
-                            <TextBlock Grid.Column="1" Text="الكمية" Style="{StaticResource TableHeaderTextStyle}" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Column="0" Text="التكلفة" Style="{StaticResource TableHeaderTextStyle}" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="العلاج" Style="{StaticResource TableHeaderTextStyle}" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="0" Text="المبلغ المدفوع" Style="{StaticResource TableHeaderTextStyle}" HorizontalAlignment="Center"/>
                         </Grid>
                     </Border>
 
@@ -768,22 +766,12 @@
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="80"/>
-                                                    <ColumnDefinition Width="120"/>
+                                                    <ColumnDefinition Width="200"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="2" Text="{Binding TreatmentName}" FontSize="16" FontWeight="SemiBold"
+                                                <TextBlock Grid.Column="1" Text="{Binding TreatmentName}" FontSize="16" FontWeight="SemiBold"
                                                            Foreground="{DynamicResource AppTextPrimary}" VerticalAlignment="Center" HorizontalAlignment="Right" TextWrapping="Wrap"/>
-                                                <TextBlock Grid.Column="1" FontSize="15" Foreground="#0369A1" FontWeight="Bold"
-                                                           HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Run Text="×"/>
-                                                    <Run Text="{Binding Quantity}"/>
-                                                </TextBlock>
-                                                <TextBlock Grid.Column="0" FontSize="15" Foreground="#15803D" FontWeight="Bold"
-                                                           HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Run Text="{Binding Cost, StringFormat={}{0:0.##}}"/>
-                                                    <Run Text=" "/>
-                                                    <Run Text="{Binding Currency}"/>
-                                                </TextBlock>
+                                                <TextBlock Grid.Column="0" Text="{Binding CostText}" FontSize="15" Foreground="#15803D" FontWeight="Bold"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
