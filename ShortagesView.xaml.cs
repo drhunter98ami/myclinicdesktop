@@ -286,7 +286,7 @@ namespace MyClinic
                     var newExpense = new ExpenseEntry
                     {
                         ExpenseDate = DateTime.Now,
-                        Description = item.Item,
+                        Description = $"نواقص - {item.Item}",
                         Amount = (double)amountInSyp
                     };
                     context.Expenses.Add(newExpense);
