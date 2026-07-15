@@ -453,7 +453,7 @@ namespace MyClinic
                     if (string.IsNullOrWhiteSpace(pv.SelectedTreatmentsJson)) continue;
                     foreach (var t in ParseSelectedTreatments(pv.SelectedTreatmentsJson))
                     {
-                        double cost = t.Cost * Math.Max(1, t.Quantity);
+                        double cost = (double)t.Cost * Math.Max(1, t.Quantity);
                         if (cost > 0.009)
                             queue.Add((t.TreatmentName, cost, t.Currency));
                     }
@@ -520,8 +520,8 @@ namespace MyClinic
                             {
                                 TreatmentName   = t.TreatmentName,
                                 Currency        = t.Currency,
-                                AllocatedAmount = t.Cost * Math.Max(1, t.Quantity),
-                                TreatmentTotal  = t.Cost * Math.Max(1, t.Quantity)
+                                AllocatedAmount = (double)t.Cost * Math.Max(1, t.Quantity),
+                                TreatmentTotal  = (double)t.Cost * Math.Max(1, t.Quantity)
                             })
                             .Where(a => a.TreatmentTotal > 0.009)
                             .ToList();
