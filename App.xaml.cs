@@ -18,6 +18,7 @@ public partial class App : Application
         using var context = new AppDbContext();
 
         // Creates the database if it does not already exist.
+        // This is safer than Migrate() for existing production databases
         context.Database.EnsureCreated();
 
         // Backfill the newer clinic tables when an older local database already exists.
@@ -161,7 +162,41 @@ public partial class App : Application
 
         EnsureColumnExists(context, "LabWorks", "LabName", "TEXT NULL");
 
-        bool hasUsers = context.Users.Any();
+        // Create TreatmentCosts table if it doesn't exist (for older databases)
+        context.Database.ExecuteSqlRaw(
+            @"CREATE TABLE IF NOT EXISTS TreatmentCosts (
+                Id INTEGER NOT NULL CONSTRAINT PK_TreatmentCosts PRIMARY KEY AUTOINCREMENT,
+                TreatmentName TEXT NOT NULL,
+                Cost TEXT NOT NULL,
+                Currency TEXT NOT NULL DEFAULT 'SYP'
+            );");
+
+        // Create UpcomingPayments table if it doesn't exist (for older databases)
+        context.Database.ExecuteSqlRaw(
+            @"CREATE TABLE IF NOT EXISTS UpcomingPayments (
+                Id INTEGER NOT NULL CONSTRAINT PK_UpcomingPayments PRIMARY KEY AUTOINCREMENT,
+                Description TEXT NOT NULL,
+                Amount REAL NOT NULL
+            );");
+
+        // Ensure Currency column exists in TreatmentCosts (for databases created before currency support)
+        EnsureColumnExists(context, "TreatmentCosts", "Currency", "TEXT NOT NULL DEFAULT 'SYP'");
+
+        bool hasUsers;
+        try
+        {
+            hasUsers = context.Users.Any();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"خطأ في قراءة قاعدة البيانات: {ex.Message}\n\nالتفاصيل:\n{ex.InnerException?.Message ?? ex.StackTrace}",
+                "خطأ في بدء التطبيق",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            Shutdown();
+            return;
+        }
         Window startupWindow = hasUsers && LoginSessionStore.HasValidLoginSession(LoginGracePeriod)
             ? new MainWindow()
             : new LoginWindow();
